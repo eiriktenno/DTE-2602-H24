@@ -1,0 +1,32 @@
+strict graph "Graf 1" {
+	A
+	A -- D
+	D
+	D -- A
+	D -- H
+	D -- F
+	D -- G
+	D -- E
+	H
+	H -- D
+	H -- E
+	H -- G
+	F
+	F -- D
+	G
+	G -- D
+	G -- H
+	G -- E
+	G -- B
+	G -- C
+	E
+	E -- D
+	E -- H
+	E -- G
+	E -- C
+	B
+	B -- G
+	C
+	C -- E
+	C -- G
+}

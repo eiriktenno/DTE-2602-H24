@@ -1,0 +1,19 @@
+digraph "Graf 2" {
+	A
+	A -> C
+	C
+	C -> A
+	C -> E
+	E
+	E -> A
+	E -> B
+	B
+	B -> D
+	D
+	D -> E
+	D -> C
+	D -> A
+	F
+	F -> A
+	F -> D
+}

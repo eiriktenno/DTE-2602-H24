@@ -1,0 +1,8 @@
+jupyterlab
+binarytree
+heapdict
+matplotlib
+numpy
+pytest
+scikit-learn
+graphviz
