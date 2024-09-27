@@ -3,7 +3,7 @@ import time
 import pygame
 from pygame.locals import *
 from robot import Robot
-from radiobutton import RadioButton
+from radiobutton import RadioButton, RadioGroup
 
 # Add colors as needed.
 GREEN_COLOR = pygame.Color(0, 255, 0)
@@ -26,9 +26,10 @@ if __name__ == "__main__":
 
     # CUSTOM:
     #Checkbox for hvilken policy som skal kjøres
-    radio_mc = RadioButton(play_surface, 10, 510, 20, 20, GREEN_COLOR, BLACK_COLOR)
-    radio_greedy = RadioButton(play_surface, 10, 540, 20, 20, GREEN_COLOR, BLACK_COLOR)
-    radio_epsilon = RadioButton(play_surface, 10, 570, 20, 20, GREEN_COLOR, BLACK_COLOR)
+    radio_group = RadioGroup()
+    radio_mc = RadioButton(play_surface, 10, 510, 20, 20, GREEN_COLOR, BLACK_COLOR, radio_group)
+    radio_greedy = RadioButton(play_surface, 10, 540, 20, 20, GREEN_COLOR, BLACK_COLOR, radio_group)
+    radio_epsilon = RadioButton(play_surface, 10, 570, 20, 20, GREEN_COLOR, BLACK_COLOR, radio_group)
 
     # Pygame boilerplate code.
     running = True
