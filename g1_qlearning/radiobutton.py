@@ -10,7 +10,7 @@ class RadioButton:
     Return: return_description
     """
     
-    def __init__(self, surface, x, y, width, height, color_checked, color_unchecked, radio_group) -> None:
+    def __init__(self, surface, x, y, width, height, color_checked, color_unchecked, radio_group, text) -> None:
         self.surface = surface
         self.radio_obj = pygame.Rect(x, y, width, height)
         self.color_unchecked = color_unchecked
@@ -19,15 +19,10 @@ class RadioButton:
         self.radio_group = radio_group
         self.radio_group.append_button(self)
 
-        # Font
-        # self.font_size = 20
-        # self.font_color = pygame.Color(0, 0, 0)
-        # self.font_text_offset = (28, 1)
-
         # https://www.geeksforgeeks.org/python-display-text-to-pygame-window/
         # https://stackoverflow.com/questions/20842801/how-to-display-text-in-pygame
         self.font = pygame.font.Font('freesansbold.ttf', 20)
-        self.text = self.font.render('GeeksForGeeks', True, (0, 255, 0), (0, 0, 128))
+        self.text = self.font.render(text, True, (0, 255, 0), (0, 0, 128))
         self.textRect = self.text.get_rect()
 
         self.offset = 2
