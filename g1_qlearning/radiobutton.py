@@ -23,11 +23,16 @@ class RadioButton:
         self.checked = False
         self.radio_group = radio_group
         self.radio_group.append_button(self)
+        self.x_pos = x
+        self.y_pos = y
+        self.width = width
+        self.height = height
+        self.text_raw = text
 
         # https://www.geeksforgeeks.org/python-display-text-to-pygame-window/
         # https://stackoverflow.com/questions/20842801/how-to-display-text-in-pygame
         self.font = pygame.font.Font('freesansbold.ttf', 20)
-        self.text = self.font.render(text, True, BLACK_COLOR, WHITE_COLOR)
+        self.text = self.font.render(self.text_raw, True, BLACK_COLOR, WHITE_COLOR)
         self.textRect = self.text.get_rect()
 
         self.offset = 2
@@ -37,6 +42,7 @@ class RadioButton:
 
     def render_checkbox(self):
         if self.checked:
+            pygame.draw.rect(self.surface, BLACK_COLOR, pygame.Rect(self.x_pos - 1, self.y_pos - 1, self.width+2, self.height +2)) # Outline når man har checked.
             pygame.draw.rect(self.surface, self.color_checked, self.radio_obj)
         else:
             pygame.draw.rect(self.surface, self.color_unchecked, self.radio_obj)
@@ -48,13 +54,8 @@ class RadioButton:
         # Henter ut posisjonene til knappen
         px, py, w, h = self.radio_obj
 
-        if px < x < (px + w) and py < y < (py + h):
-            self.radio_group.toggle_button(self)
-            # if self.checked:
-            #     self.checked = False
-            # else:
-            #     self.checked = True
-            print(f"Checked: {self.checked}")
+        if px < x < (px + w) and py < y < (py + h): # Sjekker at museklikket skjer innenfor de spesifikk checkboksene.
+            self.radio_group.toggle_button(self) # Kaller på toggle funksjonen som skrur av alle andre radioknapper.
         self.render_checkbox()
 
 
@@ -68,8 +69,15 @@ class RadioGroup:
 
     def append_button(self, button):
         self.radio_grp.append(button)
+        if len(self.radio_grp) == 1:
+            self.toggle_button(button)
 
     def toggle_button(self, selected_button):
         for button in self.radio_grp:
             button.checked = False
         selected_button.checked = True
+
+    def get_active(self):
+        for button in self.radio_grp:
+            if button.checked:
+                return button.text_raw
