@@ -19,8 +19,9 @@ if __name__ == "__main__":
     pygame.display.set_caption('Karaktersatt Oppgave 1 DTE2602')
     simulator_speed = 10 # Adjust this value to change the speed of the visualiztion. Bigger number = more faster...
 
-    bg_image = pygame.image.load("grid.jpg") # Loads the simplified grid image.
-    #bg_image = pygame.image.load("map.jpg") # Uncomment this to load the terrain map image.
+    bg_image = pygame.image.load("grid.jpg").convert() # Loads the simplified grid image.
+    bg_transp_image = pygame.image.load("map.jpg").convert_alpha()
+    bg_transp_image.set_alpha(200)
 
     robot = Robot() # Create a new robot.
     robot.reset_random()
@@ -35,7 +36,7 @@ if __name__ == "__main__":
     # Epochs/Episodes
     epoch_input = ''
     epoch_font = pygame.font.Font('freesansbold.ttf', 20)
-    epoch_text = epoch_font.render(epoch_input, True, (0, 255, 0), (0, 0, 128))
+    epoch_text = epoch_font.render(epoch_input, True, (0, 255, 0), BLACK_COLOR)
     epoch_textRect = epoch_text.get_rect()
     epoch_textRect.bottomleft = (400, 500)
 
@@ -100,6 +101,7 @@ if __name__ == "__main__":
 
         play_surface.fill(WHITE_COLOR) # Fill the screen with white.
         play_surface.blit(bg_image, (0, 0)) # Render the background image.
+        play_surface.blit(bg_transp_image, (0, 0))
 
         # Render the robot over the image.
         pygame.draw.rect(play_surface, BLACK_COLOR, Rect(robot.get_x() * 70 + 69, robot.get_y() * 70 + 69, 22, 22)) # A black outline.

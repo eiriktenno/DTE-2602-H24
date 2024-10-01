@@ -1,6 +1,11 @@
 import pygame
 pygame.font.init()
 
+# Add colors as needed.
+GREEN_COLOR = pygame.Color(0, 255, 0)
+BLACK_COLOR = pygame.Color(0, 0, 0)
+WHITE_COLOR = pygame.Color(255, 255, 255)
+
 class RadioButton:
     """sumary_line
     Basert på: https://stackoverflow.com/questions/38551168/radio-button-in-pygame
@@ -22,7 +27,7 @@ class RadioButton:
         # https://www.geeksforgeeks.org/python-display-text-to-pygame-window/
         # https://stackoverflow.com/questions/20842801/how-to-display-text-in-pygame
         self.font = pygame.font.Font('freesansbold.ttf', 20)
-        self.text = self.font.render(text, True, (0, 255, 0), (0, 0, 128))
+        self.text = self.font.render(text, True, BLACK_COLOR, WHITE_COLOR)
         self.textRect = self.text.get_rect()
 
         self.offset = 2
