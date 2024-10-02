@@ -100,6 +100,7 @@ if __name__ == "__main__":
                     epoch_input = epoch_input[:-1]
                 #epoch_font.render(epoch_input, True, (0, 255, 0), (0, 0, 128))
                 if event.key == K_RETURN:
+                    robot.reset_random()
                     policy_running = True
                     robot.running = True
                     print(f"RUNNING WITH: {epoch_input} episodes.")
@@ -143,7 +144,6 @@ if __name__ == "__main__":
         # Calls related to Q-learning.
         if policy_running:
             if robot.has_reached_goal(goal_pos) or not robot.running:
-                robot.reset_random()
                 policy_running = False
             else:
                 robot.one_step_q_learning(radio_group.get_active())
