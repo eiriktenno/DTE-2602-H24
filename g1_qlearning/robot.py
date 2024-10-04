@@ -10,7 +10,7 @@ class Robot:
 
     x_pos = 0
     y_pos = 0
-    alpha = 1 # Learning rate
+    alpha = 0.8 # Learning rate
     gamma = 0.8
     reward_matrix = []
     q_matrix = []
@@ -29,13 +29,12 @@ class Robot:
                      [-100, 100, -50, -50, -50, -50, -50, -100],
                      [-100, -100, -100, -100, -100, -100, -100, -100]]
 
-                    # actions   u,  d,  l,  r
         self.wall_value = -100
-        self.hill_value = -25
-        self.water_value = -50
+        self.hill_value = -4
+        self.water_value = -10
         self.plain_value = 0
         self.goal_value = 100
-        self.reward_matrix2 = {
+        self.reward_matrix2 = { #   Up,               Down              Left            Right
                                 1: [self.wall_value, self.water_value, self.wall_value, self.hill_value],
                                 2: [self.wall_value, self.water_value, self.water_value, self.hill_value],
                                 3: [self.wall_value, self.plain_value, self.hill_value, self.plain_value],
@@ -100,38 +99,53 @@ class Robot:
         if action == 0: # Opp
             current_state = self.get_state()
             # self.y_pos -= 1
-            reward = self.reward_matrix[self.y_pos - 1][self.x_pos]
-            self.reward_update(current_state, action, reward)
+            # reward = self.reward_matrix[self.y_pos - 1][self.x_pos]
+            # next_state = self.get_state(self.x_pos, self.y_pos-1)
+            # self.reward_update(current_state, action, reward, next_state)
             # self.q_matrix[current_state][random_num] = \
             #     self.reward_matrix[self.x_pos][self.y_pos] + self.gamma*max(self.q_matrix[self.get_state()])
 
             if self.y_pos != 1:
                 self.y_pos -= 1
+                next_state = self.get_state()
+            else:
+                next_state = current_state
+            self.reward_update(current_state, action, next_state)
             
             
         if action == 1: # Ned
             current_state = self.get_state()
-            reward = self.reward_matrix[self.y_pos + 1][self.x_pos]
-            self.reward_update(current_state, action, reward)
 
             if self.y_pos != 6:
                 self.y_pos += 1
+                next_state = self.get_state()
+            else:
+                next_state = current_state
+            self.reward_update(current_state, action, next_state)
             
         if action == 2: # Venstre
             current_state = self.get_state()
-            reward = self.reward_matrix[self.y_pos][self.x_pos - 1]
+            #reward = self.reward_matrix[self.y_pos][self.x_pos - 1]
 
-            self.reward_update(current_state, action, reward)
+            #self.reward_update(current_state, action, reward)
             if self.x_pos != 1:
                 self.x_pos -= 1
+                next_state = self.get_state()
+            else:
+                next_state = current_state
+            self.reward_update(current_state, action, next_state)
             
         if action == 3: # Høyre
             current_state = self.get_state()
-            reward = self.reward_matrix[self.y_pos][self.x_pos + 1]
-            self.reward_update(current_state, action, reward)
+            # reward = self.reward_matrix[self.y_pos][self.x_pos + 1]
+            # self.reward_update(current_state, action, reward)
 
             if self.x_pos != 6:
                 self.x_pos += 1
+                next_state = self.get_state()
+            else:
+                next_state = current_state
+            self.reward_update(current_state, action, next_state)
             
 
     def get_next_state_eg(self):
@@ -186,6 +200,8 @@ class Robot:
     def get_state(self):
         print(f"State: {(self.y_pos-1)*6 + self.x_pos} X: {self.x_pos} Y: {self.y_pos}")
         return (self.y_pos-1)*6 + self.x_pos
+        # print(f"State: {(self.y_pos-1)*6 + self.x_pos} X: {self.x_pos} Y: {self.y_pos}")
+        #     return (self.y_pos-1)*6 + self.x_pos
     
     def get_state_pos(self, state):
         #print(f"State: {state}")
@@ -194,7 +210,7 @@ class Robot:
         # print(f"X: {x} Y: {y}")
         return x,y
 
-    def reward_update(self, current_state, action, reward, next_state):
+    def reward_update(self, current_state, action, next_state):
         #current_state = self.get_state()
             #next_state = self.get_state()
         #x, y = self.get_state_pos(new_state)
@@ -207,11 +223,11 @@ class Robot:
         
         # print(f"State: {current_state} Action: {action} New: X: {x} Y: {y}")
         print(current_state)
-        self.q_matrix[current_state][action] = reward + self.gamma*max(self.q_matrix[self.get_state()])
+        #self.q_matrix[current_state][action] = reward + self.gamma*max(self.q_matrix[self.get_state()])
 
 
         self.q_matrix[current_state][action] = (1 - self.alpha) * self.q_matrix[current_state][action]\
-                                                + self.alpha * (self.reward_matrix[current_state][action]\
+                                                + self.alpha * (self.reward_matrix2[current_state][action]\
                                                                 + self.gamma * max(self.q_matrix[next_state]))
                                                 
         
