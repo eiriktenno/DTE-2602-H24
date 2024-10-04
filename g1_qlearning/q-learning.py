@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     play_surface = pygame.display.set_mode((500, 600))
     pygame.display.set_caption('Karaktersatt Oppgave 1 DTE2602')
-    simulator_speed = 10 # Adjust this value to change the speed of the visualiztion. Bigger number = more faster...
+    simulator_speed = 1000 # Adjust this value to change the speed of the visualiztion. Bigger number = more faster...
 
     bg_image = pygame.image.load("grid.jpg").convert() # Loads the simplified grid image.
     bg_transp_image = pygame.image.load("map.jpg").convert_alpha()
@@ -39,6 +39,7 @@ if __name__ == "__main__":
     # epoch_text = epoch_font.render(epoch_input, True, (0, 255, 0), BLACK_COLOR)
     # epoch_textRect = epoch_text.get_rect()
     # epoch_textRect.bottomleft = (400, 500)
+    epoch_number = 0
 
     # Button
 
@@ -57,7 +58,7 @@ if __name__ == "__main__":
 
     # Setter at ingen policy kjører når man starter opp
     policy_running = False
-    goal_pos = {'X': 0, 'Y': 5}
+    goal_pos = {'X': 1, 'Y': 6}
 
     # Pygame boilerplate code.
     running = True
@@ -100,9 +101,13 @@ if __name__ == "__main__":
                     epoch_input = epoch_input[:-1]
                 #epoch_font.render(epoch_input, True, (0, 255, 0), (0, 0, 128))
                 if event.key == K_RETURN:
-                    robot.reset_random()
                     policy_running = True
                     robot.running = True
+                    if epoch_input == '':
+                        epoch_number = 0
+                    else:
+                        epoch_number = int(epoch_input)
+                        robot.reset_random()
                     print(f"RUNNING WITH: {epoch_input} episodes.")
 
                 # https://stackoverflow.com/questions/20842801/how-to-display-text-in-pygame
@@ -142,11 +147,15 @@ if __name__ == "__main__":
         
 
         # Calls related to Q-learning.
+        if epoch_number == 0:   
+                policy_running = False
         if policy_running:
             if robot.has_reached_goal(goal_pos) or not robot.running:
-                policy_running = False
+                epoch_number -= 1
+                robot.reset_random()
             else:
                 robot.one_step_q_learning(radio_group.get_active())
+                
 
         # Refresh the screen.
         pygame.display.flip()
