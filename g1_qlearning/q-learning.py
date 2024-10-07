@@ -31,7 +31,7 @@ if __name__ == "__main__":
     radio_group = RadioGroup()
     radio_mc = RadioButton(play_surface, 10, 510, 20, 20, GREEN_COLOR, BLACK_COLOR, radio_group, 'MC')
     radio_greedy = RadioButton(play_surface, 10, 540, 20, 20, GREEN_COLOR, BLACK_COLOR, radio_group, 'Greedy')
-    radio_epsilon = RadioButton(play_surface, 10, 570, 20, 20, GREEN_COLOR, BLACK_COLOR, radio_group, 'Epilson')
+    radio_epsilon = RadioButton(play_surface, 10, 570, 20, 20, GREEN_COLOR, BLACK_COLOR, radio_group, 'Epsilon')
 
     # Epochs/Episodes
     epoch_input = ''

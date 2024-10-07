@@ -10,11 +10,32 @@ class Robot:
 
     x_pos = 0
     y_pos = 0
-    alpha = 0.8 # Learning rate
-    gamma = 0.8
+    alpha = 0.2 # I et statisk miljø har det liten hensikt å bruke en stor alpha/læringsrate.
+                # Det er ikke noen særlige endringer
+                # dynamiske miljø = Høy alpha
+                # statiske miljø = lav alpha
+    gamma = 0.9 # Discount factor/gamma - Hvor stor tro har agenten på at fremtiden vil bringe noe godt.
+                # Stor gamma vil si at vi tror den får en stor belønning i fremtiden.
+                # Dersom vi ikke er sikker på om man får en stor belønning, kan vi bruke lav gamma.
+                # Tro på høy belønning = Høy gamma
+                # Usikker på belønning = Lav gamma
     reward_matrix = []
     q_matrix = []
     running = False
+
+
+    # Konvergens-sjekk
+    q_diffs = []
+    diff_num = 0.01 # Hvor høy differansen skal være før man sier det er konvergens.
+    diff_loops = 10 # Hvor mange ganger på rad man skal få "konvergens" før man slutter av.
+
+    # Epsilon settings
+    epsilon = 0.1 # Verdien som blir satt her skal representere hvor høy "random" Eks: 0.1 = 10% random.
+
+    # Greedy
+    greedy_max_steps = 1000 # Hvor mange steps man skal kjøre før man bestemmer seg for at greedy ikke finner veien.
+
+    
 
     def __init__(self):
         # Define R- and Q-matrices here.
@@ -30,9 +51,9 @@ class Robot:
                      [-100, -100, -100, -100, -100, -100, -100, -100]]
 
         self.wall_value = -100
-        self.hill_value = -4
-        self.water_value = -10
-        self.plain_value = 0
+        self.hill_value = -20
+        self.water_value = -40
+        self.plain_value = 1
         self.goal_value = 100
         self.reward_matrix2 = { #   Up,               Down              Left            Right
                                 1: [self.wall_value, self.water_value, self.wall_value, self.hill_value],
@@ -94,7 +115,21 @@ class Robot:
 
 
     def get_next_state_mc(self):
-        # Return the next state based on Monte Carlo.
+       pass
+            
+
+    def get_next_state_eg(self):
+        # Return the next state based on Epsilon-greedy.
+        pass
+
+    def greedy_exploration(self):
+        pass
+
+    def epsilon_exploration(self):
+        pass
+
+    def monte_carlo_exploration(self):
+         # Return the next state based on Monte Carlo.
         action = random.randint(0,3)
         if action == 0: # Opp
             current_state = self.get_state()
@@ -146,15 +181,6 @@ class Robot:
             else:
                 next_state = current_state
             self.reward_update(current_state, action, next_state)
-            
-
-    def get_next_state_eg(self):
-        # Return the next state based on Epsilon-greedy.
-        pass
-
-
-    def monte_carlo_exploration(self):
-        pass
 
 
     def q_learning(self):
@@ -169,10 +195,16 @@ class Robot:
         # Go to the next state
         if policy == "MC":
             self.running = True
-            self.get_next_state_mc()
+            self.monte_carlo_exploration()
+            # self.get_next_state_mc() # Sette opp en løsning som viser svaret.
         if policy == "Greedy":
+            # Denne vil kanskje aldri kunne nå målet med en ren greedy.
+            # Bør innføre en max steps.
+            self.greedy_exploration()
             self.running = False
-        if policy == "Epilson":
+        if policy == "Epsilon":
+            # Basert på monte carlo
+            # Bruker prosentvis epsilon
             self.running = False
     
 
@@ -198,7 +230,6 @@ class Robot:
         pass
 
     def get_state(self):
-        print(f"State: {(self.y_pos-1)*6 + self.x_pos} X: {self.x_pos} Y: {self.y_pos}")
         return (self.y_pos-1)*6 + self.x_pos
         # print(f"State: {(self.y_pos-1)*6 + self.x_pos} X: {self.x_pos} Y: {self.y_pos}")
         #     return (self.y_pos-1)*6 + self.x_pos
@@ -222,7 +253,6 @@ class Robot:
         #     self.reward_matrix[x+1][y+1] + self.gamma*max(self.q_matrix[self.get_state()])
         
         # print(f"State: {current_state} Action: {action} New: X: {x} Y: {y}")
-        print(current_state)
         #self.q_matrix[current_state][action] = reward + self.gamma*max(self.q_matrix[self.get_state()])
 
 
