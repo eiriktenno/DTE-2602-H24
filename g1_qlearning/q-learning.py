@@ -10,6 +10,7 @@ pygame.font.init()
 GREEN_COLOR = pygame.Color(0, 255, 0)
 BLACK_COLOR = pygame.Color(0, 0, 0)
 WHITE_COLOR = pygame.Color(255, 255, 255)
+RED_COLOR = pygame.Color(255, 0, 0)
 
 if __name__ == "__main__":
     pygame.init()
@@ -59,6 +60,8 @@ if __name__ == "__main__":
     # Setter at ingen policy kjører når man starter opp
     policy_running = False
     goal_pos = {'X': 1, 'Y': 6}
+    start_pos = {'X': 4, 'Y': 1}
+    route = []
 
     # Pygame boilerplate code.
     running = True
@@ -103,6 +106,7 @@ if __name__ == "__main__":
                 if event.key == K_RETURN:
                     policy_running = True
                     robot.running = True
+                    robot.reset_q_matrix()
                     if epoch_input == '':
                         epoch_number = 0
                     else:
@@ -147,14 +151,27 @@ if __name__ == "__main__":
         
 
         # Calls related to Q-learning.
-        if epoch_number == 0:   
-                policy_running = False
         if policy_running:
             if robot.has_reached_goal(goal_pos) or not robot.running:
                 epoch_number -= 1
                 robot.reset_random()
             else:
                 robot.one_step_q_learning(radio_group.get_active())
+            if epoch_number == 0:
+                print("Doing something...")
+                route = robot.get_route(start_pos, goal_pos, radio_group.get_active())
+                print(route)
+                print("Done doing something...")
+                
+        if epoch_number == 0:   
+                policy_running = False
+                #robot.get_route(start_pos, goal_pos, radio_group.get_active())
+
+        if route != []:
+            for step in route:
+                    pygame.draw.rect(play_surface, BLACK_COLOR, Rect(step[0] * 70 + 69, step[1] * 70 + 69, 22, 22)) # A black outline.
+                    pygame.draw.rect(play_surface, RED_COLOR, Rect(step[0] * 70 + 70, step[1] * 70 + 70, 20, 20))
+        
                 
 
         # Refresh the screen.
