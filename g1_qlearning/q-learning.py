@@ -107,6 +107,8 @@ if __name__ == "__main__":
                     policy_running = True
                     robot.running = True
                     robot.reset_q_matrix()
+                    robot.visited_matrix_reset()
+                    route = []
                     if epoch_input == '':
                         epoch_number = 0
                     else:
@@ -168,9 +170,14 @@ if __name__ == "__main__":
                 #robot.get_route(start_pos, goal_pos, radio_group.get_active())
 
         if route != []:
-            for step in route:
+            for step_number, step in enumerate(route, start=1):
                     pygame.draw.rect(play_surface, BLACK_COLOR, Rect(step[0] * 70 + 69, step[1] * 70 + 69, 22, 22)) # A black outline.
                     pygame.draw.rect(play_surface, RED_COLOR, Rect(step[0] * 70 + 70, step[1] * 70 + 70, 20, 20))
+                    step_number_text = pygame.font.Font('freesansbold.ttf', 20).render(str(step_number), True, BLACK_COLOR, None)
+                    step_number_rect = step_number_text.get_rect()
+                    step_number_rect.topleft = (step[0] * 70 + 69, step[1] * 70 + 69)
+                    play_surface.blit(step_number_text, step_number_rect)
+
         
                 
 

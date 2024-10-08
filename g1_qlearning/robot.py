@@ -52,8 +52,8 @@ class Robot:
                      [-100, -100, -100, -100, -100, -100, -100, -100]]
 
         self.wall_value = -1000
-        self.hill_value = -25
-        self.water_value = -50
+        self.hill_value = -50
+        self.water_value = -100
         self.plain_value = 0
         self.goal_value = 100
         self.step_visited_punishment = 2
@@ -104,16 +104,18 @@ class Robot:
         # Tilstander * handlinger: Tenker oss at det er 6*6 = 36 tilstander 4 handlinger opp/ned/høyre/venstre.
         #self.q_matrix = [ [0] * 4 for _ in range(1, 37)]
         self.q_matrix = {i: [-2] * 4 for i in range(1, 37)}
-        self.visited = {i: {u: False for u in range(0, 8)} for i in range(0, 8)}
+        self.visited = {}
+        self.visited_matrix_reset()
+        # self.visited = {i: {u: False for u in range(0, 8)} for i in range(0, 8)}
 
-        # LEgge til visited i alle "vegger"
-        # TOPP
-        for x in range(6):
-            self.visited[x][0] = True
-            self.visited[x][7] = True
-        for y in range(6):
-            self.visited[0][y] = True
-            self.visited[7][y] = True
+        # # LEgge til visited i alle "vegger"
+        # # TOPP
+        # for x in range(6):
+        #     self.visited[x][0] = True
+        #     self.visited[x][7] = True
+        # for y in range(6):
+        #     self.visited[0][y] = True
+        #     self.visited[7][y] = True
 
 
 
@@ -130,16 +132,28 @@ class Robot:
     def reset_q_matrix(self):
         self.q_matrix = {i: [-2] * 4 for i in range(1, 37)}
 
+    def visited_matrix_reset(self):
+        self.visited = {i: {u: False for u in range(0, 8)} for i in range(0, 8)}
+
+        # LEgge til visited i alle "vegger"
+        # TOPP
+        for x in range(6):
+            self.visited[x][0] = True
+            self.visited[x][7] = True
+        for y in range(6):
+            self.visited[0][y] = True
+            self.visited[7][y] = True
+
 
     def get_next_state_mc(self, state):
         #print(state)
         x,y = self.get_state_pos(state)
-        print(f"x: {x} y: {y}")
+        # print(f"x: {x} y: {y}")
 
         # Legger de som er besøkt til en visited liste.
         # Disse skal ikke besøkes igjen.
         self.visited[x][y] = True
-        print(self.visited)
+        # print(self.visited)
         
         # Henter neste state fra q-matrix
         max_reward = max(self.q_matrix[state])
@@ -155,23 +169,25 @@ class Robot:
             x, y = self.get_new_mc_pos(state, action)
             if self.visited[x][y]:
                 # Dersom man prøver å besøke samme step flere ganger, legger til en straff.
-                print("VISITED")
+                #print("VISITED")
                 self.q_matrix[state][action] -= self.step_visited_punishment
                 action_locked[action] = True
                 #time.sleep(1)
             else:
                 next_step_found = True
-            for i in range(1, 37):
-                print(f"State {i}: {self.q_matrix[i]}:")
-            print(f"GET NEXT: X: {x} Y: {y} State: {state} Action {action} Reward: {max_reward}")
+            # for i in range(1, 37):
+            #     print(f"State {i}: {self.q_matrix[i]}:")
+            # print(f"GET NEXT: X: {x} Y: {y} State: {state} Action {action} Reward: {max_reward}")
             ######### MÅ GJØRE BEGRENSNINGER FOR Å IKKE GÅ GJENNOM VEGGER: VELDIG BUGGED ########################################
             
-            all_visited = action_locked[0] and action_locked[1] and action_locked[2] and action_locked[3]
+            #all_visited = action_locked[0] and action_locked[1] and action_locked[2] and action_locked[3]
                     
-            if all_visited:
-                print(action_locked)
+            if action_locked[0] and action_locked[1] and action_locked[2] and action_locked[3]:
+                # print(action_locked)
                  ######### ISTEDE FOR Å LÅSE NED, PRØVE MED RANDOM ########################################
-                return -1
+                r_num = random.randint(0,3)
+                x, y = self.get_new_mc_pos(state, r_num)
+                next_step_found = True
                 #raise ValueError("Klarer ikke finne letteste rute, med denne q-matrisen.")
 
         return x,y
@@ -179,13 +195,17 @@ class Robot:
     def get_new_mc_pos(self, state, action):
         x,y = self.get_state_pos(state)
         if action == 0: #Opp
-            y -= 1 
+            if y != 1:
+                y -= 1 
         if action == 1: #Ned
-            y +=1
+            if y != 6:
+                y +=1
         if action == 2: #Venstre
-            x -= 1
+            if x != 1:
+                x -= 1
         if action == 3: #Høyre
-            x+=1
+            if x != 6:
+                x+=1
         return x,y
             
 
