@@ -32,7 +32,7 @@ if __name__ == "__main__":
     #Checkbox for hvilken policy som skal kjøres
     radio_group = RadioGroup()
     radio_mc = RadioButton(play_surface, 10, 510, 20, 20, GREEN_COLOR, BLACK_COLOR, radio_group, 'MC')
-    radio_greedy = RadioButton(play_surface, 10, 540, 20, 20, GREEN_COLOR, BLACK_COLOR, radio_group, 'Greedy')
+    radio_q_learning = RadioButton(play_surface, 10, 540, 20, 20, GREEN_COLOR, BLACK_COLOR, radio_group, 'Q-Learning')
     radio_epsilon = RadioButton(play_surface, 10, 570, 20, 20, GREEN_COLOR, BLACK_COLOR, radio_group, 'Epsilon')
 
     # Epochs/Episodes
@@ -138,7 +138,7 @@ if __name__ == "__main__":
             # CUSTOM
             if event.type == pygame.MOUSEBUTTONDOWN:
                 radio_mc.update(event)
-                radio_greedy.update(event)
+                radio_q_learning.update(event)
                 radio_epsilon.update(event)
 
 
@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
         #Radiobutton render
         radio_mc.render_checkbox()
-        radio_greedy.render_checkbox()
+        radio_q_learning.render_checkbox()
         radio_epsilon.render_checkbox()
 
         #Epoch input code
@@ -174,8 +174,8 @@ if __name__ == "__main__":
             #robot.start(epoch_number,start_pos,goal_pos, radio_group.get_active())
             if radio_group.get_active() == 'MC':
                 route, reward = robot.monte_carlo_exploration(epoch_number,start_pos,goal_pos)
-            elif radio_group.get_active() == 'Greedy':
-                route = robot.q_learning(epoch_number,start_pos,goal_pos, 'Greedy')
+            elif radio_group.get_active() == 'Q-Learning':
+                route = robot.q_learning(epoch_number,start_pos,goal_pos, 'Q-Learning')
             elif radio_group.get_active() == 'Epsilon':
                 route = robot.q_learning(epoch_number,start_pos,goal_pos, 'Epsilon')
                 #route, reward = robot.greedy_path(goal_pos)

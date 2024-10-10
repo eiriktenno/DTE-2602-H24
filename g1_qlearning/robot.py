@@ -9,11 +9,11 @@ import random
 class Robot:
     x_pos = 4
     y_pos = 1
-    alpha = 0.6 # I et statisk miljø har det liten hensikt å bruke en stor alpha/læringsrate.
+    alpha = 0.4 # I et statisk miljø har det liten hensikt å bruke en stor alpha/læringsrate.
                 # Det er ikke noen særlige endringer
                 # dynamiske miljø = Høy alpha
                 # statiske miljø = lav alpha
-    gamma = 0.8 # Discount factor/gamma - Hvor stor tro har agenten på at fremtiden vil bringe noe godt.
+    gamma = 0.9 # Discount factor/gamma - Hvor stor tro har agenten på at fremtiden vil bringe noe godt.
                 # Stor gamma vil si at vi tror den får en stor belønning i fremtiden.
                 # Dersom vi ikke er sikker på om man får en stor belønning, kan vi bruke lav gamma.
                 # Tro på høy belønning = Høy gamma
@@ -34,7 +34,7 @@ class Robot:
     # Greedy
     greedy_max_steps = 1000 # Hvor mange steps man skal kjøre før man bestemmer seg for at greedy ikke finner veien.
 
-    # Monte Carlo
+    # Reward sum
     mc_total_reward = -math.inf
     mc_steps = []
 
@@ -43,16 +43,6 @@ class Robot:
 
     def __init__(self):
         # Define R- and Q-matrices here.
-
-        # Lager en større reward matrix, for at robot skal lære å ikke gå utenfor satelittområdet.
-        # self.reward_matrix = [[-100, -100, -100, -100, -100, -100, -100, -100],
-        #              [-100, -50, -25, -25, 0, 0, -50, -100],
-        #              [-100, -50, -50, 0, -25, 0, 0, -100],
-        #              [-100, -25, 0, 0, -25, 0, -25, -100],
-        #              [-100, -25, 0, 0, 0, 0, 0, -100],
-        #              [-100, -25, 0, -25, 0, -25, 0, -100],
-        #              [-100, 100, -50, -50, -50, -50, -50, -100],
-        #              [-100, -100, -100, -100, -100, -100, -100, -100]]
 
         self.wall_value = -1000
         self.hill_value = -50
@@ -132,11 +122,8 @@ class Robot:
         else:
             max_reward = max(self.q_matrix[state])
             action = self.q_matrix[state].index(max_reward)
-            print(action)
             x,y = self.pos_move(state, action)
-            print(f"X: {x}, Y: {y}")
             next_state = self.get_state(x, y)
-            print(f"Next State: {next_state}")
             return next_state, action
 
     def monte_carlo_exploration(self, epochs: int, start_pos: dict, goal_pos: dict) -> list:
@@ -236,7 +223,7 @@ class Robot:
         # Get the reward for going to this state
         # Update the Q-matrix
         # Go to the next state
-        if policy == 'Greedy':
+        if policy == 'Q-Learning':
             action = random.randint(0,3)
             current_state = self.get_state()
             if action == 0: # Opp
