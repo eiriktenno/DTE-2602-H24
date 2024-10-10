@@ -19,14 +19,14 @@ if __name__ == "__main__":
 
     play_surface = pygame.display.set_mode((500, 600))
     pygame.display.set_caption('Karaktersatt Oppgave 1 DTE2602')
-    simulator_speed = 1000 # Adjust this value to change the speed of the visualiztion. Bigger number = more faster...
+    simulator_speed = 10 # Adjust this value to change the speed of the visualiztion. Bigger number = more faster...
 
     bg_image = pygame.image.load("grid.jpg").convert() # Loads the simplified grid image.
     bg_transp_image = pygame.image.load("map.jpg").convert_alpha()
     bg_transp_image.set_alpha(200)
 
     robot = Robot() # Create a new robot.
-    #robot.reset_random()
+    robot.reset_random()
 
     # CUSTOM:
     #Checkbox for hvilken policy som skal kjøres
@@ -63,9 +63,6 @@ if __name__ == "__main__":
     goal_pos = {'X': 1, 'Y': 6}
     start_pos = {'X': 4, 'Y': 1}
     route = []
-
-    # Monte Carlo reward visning
-    reward = 0
 
     # Pygame boilerplate code.
     running = True
@@ -108,25 +105,19 @@ if __name__ == "__main__":
                     epoch_input = epoch_input[:-1]
                 #epoch_font.render(epoch_input, True, (0, 255, 0), (0, 0, 128))
                 if event.key == K_RETURN:
-                    # policy_running = True
-                    # robot.running = True
-                    # robot.reset_q_matrix()
-                    # robot.visited_matrix_reset()
-                    # robot.mc_steps = []
-                    # robot.mc_total_reward = -math.inf
-                    # route = []
+                    policy_running = True
+                    robot.running = True
+                    robot.reset_q_matrix()
+                    robot.visited_matrix_reset()
+                    robot.mc_steps = []
+                    robot.mc_total_reward = -math.inf
+                    route = []
                     if epoch_input == '':
                         epoch_number = 0
                     else:
                         epoch_number = int(epoch_input)
-                        #robot.reset_random()
-                    # robot.start(epoch_number,start_pos,goal_pos, radio_group.get_active())
-                    # running_text = pygame.font.Font('freesansbold.ttf', 20).render("RUNNING", True, BLACK_COLOR, None)
-                    # running_rect = running_text.get_rect()
-                    # running_rect.center = (500/2, 600/2)
-                    # play_surface.blit(running_text, running_rect)
-                    robot.running = True
-
+                        robot.reset_random()
+                    print(f"RUNNING WITH: {epoch_input} episodes.")
 
                 # https://stackoverflow.com/questions/20842801/how-to-display-text-in-pygame
                 # epoch_text = epoch_font.render(epoch_input, True, (0, 255, 0), (0, 0, 128))
@@ -162,85 +153,33 @@ if __name__ == "__main__":
         play_surface.blit(epoch_text, epoch_text_rect)
         play_surface.blit(epoch_d_text, epoch_d_text_rect)
         play_surface.blit(run_d_text, run_d_text_rect)
-
-
-        if robot.running:
-            running_text = pygame.font.Font('freesansbold.ttf', 20).render("RUNNING", True, BLACK_COLOR, None)
-            running_rect = running_text.get_rect()
-            running_rect.center = (500/2, 600/2)
-            play_surface.blit(running_text, running_rect)
-            pygame.display.flip()
-            
-            #robot.start(epoch_number,start_pos,goal_pos, radio_group.get_active())
-            if radio_group.get_active() == 'MC':
-                route, reward = robot.monte_carlo_exploration(epoch_number,start_pos,goal_pos)
-            elif radio_group.get_active() == 'Greedy':
-                route = robot.q_learning(epoch_number,start_pos,goal_pos, 'Greedy')
-            elif radio_group.get_active() == 'Epsilon':
-                route = robot.q_learning(epoch_number,start_pos,goal_pos, 'Epsilon')
-                #route, reward = robot.greedy_path(goal_pos)
-
-
-        if route != []:
-            #if radio_group.get_active() == 'MC':
-            for step_number, step in enumerate(route, start=1):
-                pygame.draw.rect(play_surface, BLACK_COLOR, Rect((step[0]-1) * 70 + 69, (step[1]-1) * 70 + 69, 22, 22)) # A black outline.
-                pygame.draw.rect(play_surface, RED_COLOR, Rect((step[0]-1) * 70 + 70, (step[1]-1) * 70 + 70, 20, 20))
-                step_number_text = pygame.font.Font('freesansbold.ttf', 20).render(str(step_number), True, BLACK_COLOR, None)
-                step_number_rect = step_number_text.get_rect()
-                step_number_rect.topleft = ((step[0]-1) * 70 + 69, (step[1]-1) * 70 + 69)
-                play_surface.blit(step_number_text, step_number_rect)
-                
-                if radio_group.get_active() == 'MC':
-                    reward_text = pygame.font.Font('freesansbold.ttf', 20).render(f"Reward {reward}", True, BLACK_COLOR, None)
-                    reward_rect = reward_text.get_rect()
-                    reward_rect.center = (500/2, 600/2)
-                    play_surface.blit(reward_text, reward_rect)
-
-# BACKUP
-        # if route != []:
-        #     if radio_group.get_active() == 'MC':
-        #         for step_number, step in enumerate(route, start=1):
-        #                 pygame.draw.rect(play_surface, BLACK_COLOR, Rect((step[0]-1) * 70 + 69, (step[1]-1) * 70 + 69, 22, 22)) # A black outline.
-        #                 pygame.draw.rect(play_surface, RED_COLOR, Rect((step[0]-1) * 70 + 70, (step[1]-1) * 70 + 70, 20, 20))
-        #                 step_number_text = pygame.font.Font('freesansbold.ttf', 20).render(str(step_number), True, BLACK_COLOR, None)
-        #                 step_number_rect = step_number_text.get_rect()
-        #                 step_number_rect.topleft = ((step[0]-1) * 70 + 69, (step[1]-1) * 70 + 69)
-        #                 play_surface.blit(step_number_text, step_number_rect)
-
-        #                 reward_text = pygame.font.Font('freesansbold.ttf', 20).render(f"Reward {reward}", True, BLACK_COLOR, None)
-        #                 reward_rect = reward_text.get_rect()
-        #                 reward_rect.center = (500/2, 600/2)
-        #                 play_surface.blit(reward_text, reward_rect)
-        
-
         
 
         # Calls related to Q-learning.
-        # if policy_running:
-        #     if robot.has_reached_goal(goal_pos, radio_group.get_active()) or not robot.running:
-        #         epoch_number -= 1
-        #         robot.reset_random()
-        #     else:
-        #         robot.one_step_q_learning(radio_group.get_active())
-        #     if epoch_number == 0:
-        #         print("Doing something...")
-        #         route = robot.get_route(start_pos, goal_pos, radio_group.get_active())
-        #         print(route)
-        #         print("Done doing something...")
+        if policy_running:
+            if robot.has_reached_goal(goal_pos, radio_group.get_active()) or not robot.running:
+                epoch_number -= 1
+                robot.reset_random()
+            else:
+                robot.one_step_q_learning(radio_group.get_active())
+            if epoch_number == 0:
+                print("Doing something...")
+                route = robot.get_route(start_pos, goal_pos, radio_group.get_active())
+                print(route)
+                print("Done doing something...")
                 
-        # if epoch_number == 0:   
-        #         policy_running = False
+        if epoch_number == 0:   
+                policy_running = False
                 #robot.get_route(start_pos, goal_pos, radio_group.get_active())
 
-        # if route != []:
-        #     for step_number, step in enumerate(route, start=1):
-        #             pygame.draw.rect(play_surface, BLACK_COLOR, Rect(step[0] * 70 + 69, step[1] * 70 + 69, 22, 22)) # A black outline.
-        #             pygame.draw.rect(play_surface, RED_COLOR, Rect(step[0] * 70 + 70, step[1] * 70 + 70, 20, 20))
-        #             step_number_text = pygame.font.Font('freesansbold.ttf', 20).render(str(step_number), True, BLACK_COLOR, None)
-        #             step_number_rect = step_number_text.get_rect()
-        #             step_number_rect.topleft = (step[0] * 70 + 69, step[1] * 70 + 69)
-        #             play_surface.blit(step_number_text, step_number_rect)
+        if route != []:
+            for step_number, step in enumerate(route, start=1):
+                    pygame.draw.rect(play_surface, BLACK_COLOR, Rect(step[0] * 70 + 69, step[1] * 70 + 69, 22, 22)) # A black outline.
+                    pygame.draw.rect(play_surface, RED_COLOR, Rect(step[0] * 70 + 70, step[1] * 70 + 70, 20, 20))
+                    step_number_text = pygame.font.Font('freesansbold.ttf', 20).render(str(step_number), True, BLACK_COLOR, None)
+                    step_number_rect = step_number_text.get_rect()
+                    step_number_rect.topleft = (step[0] * 70 + 69, step[1] * 70 + 69)
+                    play_surface.blit(step_number_text, step_number_rect)
 
         
                 
