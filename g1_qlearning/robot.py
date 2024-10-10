@@ -159,20 +159,27 @@ class Robot:
             total_reward = 0
 
             state = self.get_state(self.x_pos, self.y_pos)
+            current_route.append((self.x_pos, self.y_pos))
 
             while not self.has_reached_goal(goal_pos):
                 # Legger til tilstand i ruten
-                current_route.append((self.x_pos, self.y_pos))
+                #current_route.append((self.x_pos, self.y_pos))
 
                 # Finner neste tilstand basert på random handling
                 next_state, action = self.get_next_state_mc(state)
-                reward = self.reward_matrix[next_state][action]
 
-                total_reward += reward
+                # Vi skal finne beste rute. Dersom man treffer en vegg vil ikke tilstanden endres.
+                # Derfor blir det tatt en sjekk om tilstand er endret. Oppdaterer kun dersom endret.
+                if not (state == next_state):
+                    reward = self.reward_matrix[state][action]
+                    total_reward += reward
+                    print(f"State: {state} Next State: {next_state} Reward: {reward} Total Reward: {total_reward}")
+                    state = next_state
+                    current_route.append((self.x_pos, self.y_pos))
 
-                state = next_state
+                #state = next_state
             
-            current_route.append((self.x_pos, self.y_pos))
+            
             self.reset_pos(start_pos)
 
             if total_reward > best_reward:
