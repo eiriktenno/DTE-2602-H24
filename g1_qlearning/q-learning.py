@@ -175,9 +175,9 @@ if __name__ == "__main__":
             if radio_group.get_active() == 'MC':
                 route, reward = robot.monte_carlo_exploration(epoch_number,start_pos,goal_pos)
             elif radio_group.get_active() == 'Q-Learning':
-                route = robot.q_learning(epoch_number,start_pos,goal_pos, 'Q-Learning')
+                route, reward = robot.q_learning(epoch_number,start_pos,goal_pos, 'Q-Learning')
             elif radio_group.get_active() == 'Epsilon':
-                route = robot.q_learning(epoch_number,start_pos,goal_pos, 'Epsilon')
+                route, reward = robot.q_learning(epoch_number,start_pos,goal_pos, 'Epsilon')
                 #route, reward = robot.greedy_path(goal_pos)
 
 
@@ -191,11 +191,11 @@ if __name__ == "__main__":
                 step_number_rect.topleft = ((step[0]-1) * 70 + 69, (step[1]-1) * 70 + 69)
                 play_surface.blit(step_number_text, step_number_rect)
                 
-                if radio_group.get_active() == 'MC':
-                    reward_text = pygame.font.Font('freesansbold.ttf', 20).render(f"Reward {reward}", True, BLACK_COLOR, None)
-                    reward_rect = reward_text.get_rect()
-                    reward_rect.center = (500/2, 600/2)
-                    play_surface.blit(reward_text, reward_rect)
+                # if radio_group.get_active() == 'MC':
+                reward_text = pygame.font.Font('freesansbold.ttf', 20).render(f"Reward {reward}", True, BLACK_COLOR, None)
+                reward_rect = reward_text.get_rect()
+                reward_rect.center = (500/2, 600/2)
+                play_surface.blit(reward_text, reward_rect)
 
 # BACKUP
         # if route != []:

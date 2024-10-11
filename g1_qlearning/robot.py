@@ -5,6 +5,8 @@
 import math
 import time
 import random
+import numpy as np
+import matplotlib.pyplot as plt
 
 class Robot:
     x_pos = 4
@@ -40,6 +42,13 @@ class Robot:
 
     mc_episode_reward = 0
     mc_episode_steps = []
+
+    # Plotting
+    plot_reward = np.array([])
+    plot_active = True
+    plot_q_simulations = 10
+
+
 
     def __init__(self):
         # Define R- and Q-matrices here.
@@ -135,6 +144,7 @@ class Robot:
         goal_pos - Mål posisjon i dict ('X' og 'Y')
         Return: Route en liste med de posisjonene som blir tatt.
         """
+        self.plot_reward = np.array([])
         self.x_pos = start_pos['X']
         self.y_pos = start_pos['Y']
 
@@ -164,7 +174,9 @@ class Robot:
                     state = next_state
                     current_route.append((self.x_pos, self.y_pos))
 
-                #state = next_state
+            # Legger verdi til plot, dersom det er aktivert
+            if self.plot_active:
+                self.plot_reward = np.append(self.plot_reward, total_reward)
             
             
             self.reset_pos(start_pos)
@@ -175,8 +187,11 @@ class Robot:
 
             epochs -= 1
 
+        # Dersom plot er aktivert.
+        # Plot reward til alle verdiene.
+        self.plot_rewards(self.plot_reward)
+
         self.running = False
-        #self.reset_pos(start_pos)
         return best_route, best_reward
 
     def q_learning(self, epochs, start_pos, goal_pos, policy):
@@ -198,14 +213,13 @@ class Robot:
 
                 epochs -= 1
 
-        for x in range(1, 37):
-            print(f"State {x}: {self.q_matrix[x]}:")
-
         done = False
         steps = 0
+        q_total_reward = 0
         while not done:
-            x,y = self.get_next_state_greedy(state)
+            x, y, q_step_reward = self.get_next_state_greedy(state)
             route.append([x, y])
+            q_total_reward += q_step_reward
             state = self.get_state(x_pos=x, y_pos=y)
             if state == goal_state:
                 done = True
@@ -214,7 +228,7 @@ class Robot:
                 done = True
                 route = []
         self.running = False
-        return route
+        return route, q_total_reward
 
         
     def one_step_q_learning(self, policy):
@@ -223,6 +237,8 @@ class Robot:
         # Get the reward for going to this state
         # Update the Q-matrix
         # Go to the next state
+        self.plot_reward = np.array([])
+
         if policy == 'Q-Learning':
             action = random.randint(0,3)
             current_state = self.get_state()
@@ -233,7 +249,6 @@ class Robot:
                 else:
                     next_state = current_state
                 self.reward_update(current_state, action, next_state)
-                
                 
             if action == 1: # Ned
                 if self.y_pos != 6:
@@ -258,6 +273,7 @@ class Robot:
                 else:
                     next_state = current_state
                 self.reward_update(current_state, action, next_state)
+
         elif policy == 'Epsilon':
             current_state = self.get_state()
             next_state, action = self.get_next_state_eg(current_state)
@@ -369,30 +385,57 @@ class Robot:
 
         next_step_found = False
         action_locked = [False for _ in range(4)]
+        q_step_reward = 0
         while next_step_found == False:
             max_reward = max(self.q_matrix[state])
             action = self.q_matrix[state].index(max_reward)
             # visited check
             x, y = self.pos_move(state, action)
             if self.visited[x][y]:
-                # Dersom man prøver å besøke samme step flere ganger, legger til en straff.
-                #print("VISITED")
                 self.q_matrix[state][action] -= self.step_visited_punishment
                 action_locked[action] = True
-                #time.sleep(1)
             else:
+                q_step_reward += self.reward_matrix[state][action]
                 next_step_found = True
                     
             if action_locked[0] and action_locked[1] and action_locked[2] and action_locked[3]:
                 r_num = random.randint(0,3)
                 x, y = self.pos_move(state, r_num)
+                q_step_reward += self.reward_matrix[state][action]
                 next_step_found = True
-        return x,y
+        return x,y, q_step_reward
+    
+    def plot_rewards(self, rewards: np.array) -> None:
+        plt.plot(rewards, marker='o', color='green')
+
+        # Basert på:
+        # https://medium.com/@mdnu08/automatically-annotate-the-maximum-value-in-a-plot-created-using-the-python-matplotlib-library-54c43001e39c
+
+        # For å merke den som har høyest verdi
+        max_index = np.argmax(rewards)
+        max_value = rewards[max_index]
+        plt.scatter(max_index, max_value, color='red', s=100, label=f'Høyeste verdi: {max_value:.2f}')
+        plt.annotate(f'Max: {max_value}', xy=(max_index, max_value))
+
+        # For å merke den med fårligst score
+        min_index = np.argmin(rewards)
+        min_value = rewards[min_index]
+        plt.scatter(min_index, min_value, color='blue', s=100, label=f'Minste Verdi: {min_value:.2f}')
+        plt.annotate(f'Min: {min_value}', xy=(min_index, min_value))
+
+        # Gjennomsnitt
+        # Legg til en horisontal linje for gjennomsnittsverdien
+        mean_reward = np.mean(rewards)
+        plt.axhline(y=mean_reward, color='green', linestyle='--', label=f'Gjennomsnitt: {mean_reward:.2f}')
+
+        plt.title('Rewards')
+        plt.xlabel('Indeks')
+        plt.ylabel('Reward')
+        plt.grid(True)
+        plt.legend(loc='best')
+        plt.show()
     
     def reward_update(self, current_state, action, next_state):
         self.q_matrix[current_state][action] = (1 - self.alpha) * self.q_matrix[current_state][action]\
                                                 + self.alpha * (self.reward_matrix[current_state][action]\
                                                 + self.gamma * max(self.q_matrix[next_state]))
-
-
-# Feel free to add additional classes / methods / functions to solve the assignment...
