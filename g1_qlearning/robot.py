@@ -45,8 +45,11 @@ class Robot:
 
     # Plotting
     plot_reward = np.array([])
-    plot_active = True
-    plot_q_simulations = 10
+    plot_active = True  # True om man vil ha plotting.
+    plot_q_simulations = 100 # Hvor mange q-learning simuleringer skal kjøres og plottes.
+    plot_bar = True # Dersom man vil ha bar plot.
+                    # Denne vil vise hvor mange som har optimal rute.
+    plot_max_reward = 50 # Hva er den største oppnålige rewarden
 
 
 
@@ -194,40 +197,53 @@ class Robot:
         self.running = False
         return best_route, best_reward
 
-    def q_learning(self, epochs, start_pos, goal_pos, policy):
+    def q_learning(self, epochs_input, start_pos, goal_pos, policy):
 
-        # Reset q og visited matrix
-        self.reset_q_matrix()
-        self.visited_matrix_reset()
+        if self.plot_active:
+            simulations = self.plot_q_simulations
+        else:
+            simulations = 1
 
-        route = []
-        route.append([start_pos['X'], start_pos['Y']])
-        # Get route
-        goal_state = self.get_state(x_pos=goal_pos['X'], y_pos=goal_pos['Y'])
-        state = self.get_state(x_pos=start_pos['X'], y_pos=start_pos['Y'])
+        best_scores = np.array([])
+        while simulations > 0:
+            epochs = epochs_input
+            self.reset_pos(start_pos)
 
-        counter = 0
-        while epochs > 0:
-            self.one_step_q_learning(policy)
-            if self.has_reached_goal(goal_pos):
+            # Reset q og visited matrix
+            self.reset_q_matrix()
+            self.visited_matrix_reset()
 
-                epochs -= 1
+            route = []
+            route.append([start_pos['X'], start_pos['Y']])
+            # Get route
+            goal_state = self.get_state(x_pos=goal_pos['X'], y_pos=goal_pos['Y'])
+            state = self.get_state(x_pos=start_pos['X'], y_pos=start_pos['Y'])
 
-        done = False
-        steps = 0
-        q_total_reward = 0
-        while not done:
-            x, y, q_step_reward = self.get_next_state_greedy(state)
-            route.append([x, y])
-            q_total_reward += q_step_reward
-            state = self.get_state(x_pos=x, y_pos=y)
-            if state == goal_state:
-                done = True
-            steps += 1
-            if steps > 100:
-                done = True
-                route = []
+            counter = 0
+            while epochs > 0:
+                self.one_step_q_learning(policy)
+                if self.has_reached_goal(goal_pos):
+
+                    epochs -= 1
+
+            done = False
+            steps = 0
+            q_total_reward = 0
+            while not done:
+                x, y, q_step_reward = self.get_next_state_greedy(state)
+                route.append([x, y])
+                q_total_reward += q_step_reward
+                state = self.get_state(x_pos=x, y_pos=y)
+                if state == goal_state:
+                    done = True
+                steps += 1
+                if steps > 100:
+                    done = True
+                    route = []
+            simulations -= 1
+            best_scores = np.append(best_scores, q_total_reward)
         self.running = False
+        self.plot_rewards(best_scores)
         return route, q_total_reward
 
         
@@ -406,6 +422,7 @@ class Robot:
         return x,y, q_step_reward
     
     def plot_rewards(self, rewards: np.array) -> None:
+        plt.figure(1)
         plt.plot(rewards, marker='o', color='green')
 
         # Basert på:
@@ -428,12 +445,35 @@ class Robot:
         mean_reward = np.mean(rewards)
         plt.axhline(y=mean_reward, color='green', linestyle='--', label=f'Gjennomsnitt: {mean_reward:.2f}')
 
+        # Median
+        median_reward = np.median(rewards)
+        plt.axhline(y=median_reward, color='purple', linestyle='--', label=f'Median: {median_reward:.2f}')
+
         plt.title('Rewards')
         plt.xlabel('Indeks')
         plt.ylabel('Reward')
         plt.grid(True)
         plt.legend(loc='best')
         plt.show()
+
+        if self.plot_bar:
+            plt.figure(2)
+
+            # Teller opp antall som har oppnådd max score
+            best_result = np.sum(rewards == self.plot_max_reward)
+            not_best_result = len(rewards) - best_result
+
+            best_result_per = (best_result/len(rewards)) * 100
+            not_best_result_per = (not_best_result/len(rewards)) * 100
+
+            categories = [f'R: {self.plot_max_reward} \n {best_result_per}%', f'R: !{self.plot_max_reward}\n {not_best_result_per}%']
+            counts = [best_result, not_best_result]
+
+            plt.bar(categories, counts, color=['red', 'blue'])
+            plt.ylim(0, 100)
+            plt.show()
+
+
     
     def reward_update(self, current_state, action, next_state):
         self.q_matrix[current_state][action] = (1 - self.alpha) * self.q_matrix[current_state][action]\
