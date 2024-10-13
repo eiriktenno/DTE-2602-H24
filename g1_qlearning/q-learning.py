@@ -1,3 +1,11 @@
+"""
+    Diverse kilder benyttet for programmeringen:
+    https://stackoverflow.com/questions/20842801/how-to-display-text-in-pygame
+    https://stackoverflow.com/questions/16044229/how-to-get-keyboard-input-in-pygame
+    https://www.geeksforgeeks.org/how-to-get-keyboard-input-in-pygame/
+
+"""
+
 import sys
 import time
 import pygame
@@ -38,9 +46,6 @@ if __name__ == "__main__":
     # Epochs/Episodes
     epoch_input = ''
     epoch_font = pygame.font.Font('freesansbold.ttf', 40)
-    # epoch_text = epoch_font.render(epoch_input, True, (0, 255, 0), BLACK_COLOR)
-    # epoch_textRect = epoch_text.get_rect()
-    # epoch_textRect.bottomleft = (400, 500)
     epoch_number = 0
 
     # Button
@@ -81,7 +86,7 @@ if __name__ == "__main__":
                     pygame.event.post(pygame.event.Event(QUIT))
                     running = False
                     break
-                #CUSTOM
+                # Basert på:
                 # https://stackoverflow.com/questions/16044229/how-to-get-keyboard-input-in-pygame
                 # https://www.geeksforgeeks.org/how-to-get-keyboard-input-in-pygame/
                 if event.key == K_0 or event.key == K_KP0:
@@ -106,36 +111,13 @@ if __name__ == "__main__":
                     epoch_input += '9'
                 if event.key == K_BACKSPACE:
                     epoch_input = epoch_input[:-1]
-                #epoch_font.render(epoch_input, True, (0, 255, 0), (0, 0, 128))
                 if event.key == K_RETURN:
-                    # policy_running = True
-                    # robot.running = True
-                    # robot.reset_q_matrix()
-                    # robot.visited_matrix_reset()
-                    # robot.mc_steps = []
-                    # robot.mc_total_reward = -math.inf
-                    # route = []
                     if epoch_input == '':
                         epoch_number = 0
                     else:
                         epoch_number = int(epoch_input)
-                        #robot.reset_random()
-                    # robot.start(epoch_number,start_pos,goal_pos, radio_group.get_active())
-                    # running_text = pygame.font.Font('freesansbold.ttf', 20).render("RUNNING", True, BLACK_COLOR, None)
-                    # running_rect = running_text.get_rect()
-                    # running_rect.center = (500/2, 600/2)
-                    # play_surface.blit(running_text, running_rect)
                     robot.running = True
 
-
-                # https://stackoverflow.com/questions/20842801/how-to-display-text-in-pygame
-                # epoch_text = epoch_font.render(epoch_input, True, (0, 255, 0), (0, 0, 128))
-                # epoch_textRect = epoch_text.get_rect()
-                # epoch_textRect.bottomleft = (400, 500)
-                # play_surface.blit(epoch_text, epoch_textRect)
-                
-                
-            # CUSTOM
             if event.type == pygame.MOUSEBUTTONDOWN:
                 radio_mc.update(event)
                 radio_q_learning.update(event)
@@ -182,7 +164,10 @@ if __name__ == "__main__":
 
 
         if route != []:
-            #if radio_group.get_active() == 'MC':
+
+            # Dersom man har fått tilbakemelding med route fra et run skal denne vises
+            # Dette gjøres i form av et rødt rektangel med svart outline.
+            # Det blir også lagt til step nummer inni de røde rektanglene.
             for step_number, step in enumerate(route, start=1):
                 pygame.draw.rect(play_surface, BLACK_COLOR, Rect((step[0]-1) * 70 + 69, (step[1]-1) * 70 + 69, 22, 22)) # A black outline.
                 pygame.draw.rect(play_surface, RED_COLOR, Rect((step[0]-1) * 70 + 70, (step[1]-1) * 70 + 70, 20, 20))
@@ -191,58 +176,12 @@ if __name__ == "__main__":
                 step_number_rect.topleft = ((step[0]-1) * 70 + 69, (step[1]-1) * 70 + 69)
                 play_surface.blit(step_number_text, step_number_rect)
                 
-                # if radio_group.get_active() == 'MC':
-                reward_text = pygame.font.Font('freesansbold.ttf', 20).render(f"Reward {reward}", True, BLACK_COLOR, None)
-                reward_rect = reward_text.get_rect()
-                reward_rect.center = (500/2, 600/2)
-                play_surface.blit(reward_text, reward_rect)
-
-# BACKUP
-        # if route != []:
-        #     if radio_group.get_active() == 'MC':
-        #         for step_number, step in enumerate(route, start=1):
-        #                 pygame.draw.rect(play_surface, BLACK_COLOR, Rect((step[0]-1) * 70 + 69, (step[1]-1) * 70 + 69, 22, 22)) # A black outline.
-        #                 pygame.draw.rect(play_surface, RED_COLOR, Rect((step[0]-1) * 70 + 70, (step[1]-1) * 70 + 70, 20, 20))
-        #                 step_number_text = pygame.font.Font('freesansbold.ttf', 20).render(str(step_number), True, BLACK_COLOR, None)
-        #                 step_number_rect = step_number_text.get_rect()
-        #                 step_number_rect.topleft = ((step[0]-1) * 70 + 69, (step[1]-1) * 70 + 69)
-        #                 play_surface.blit(step_number_text, step_number_rect)
-
-        #                 reward_text = pygame.font.Font('freesansbold.ttf', 20).render(f"Reward {reward}", True, BLACK_COLOR, None)
-        #                 reward_rect = reward_text.get_rect()
-        #                 reward_rect.center = (500/2, 600/2)
-        #                 play_surface.blit(reward_text, reward_rect)
-        
-
-        
-
-        # Calls related to Q-learning.
-        # if policy_running:
-        #     if robot.has_reached_goal(goal_pos, radio_group.get_active()) or not robot.running:
-        #         epoch_number -= 1
-        #         robot.reset_random()
-        #     else:
-        #         robot.one_step_q_learning(radio_group.get_active())
-        #     if epoch_number == 0:
-        #         print("Doing something...")
-        #         route = robot.get_route(start_pos, goal_pos, radio_group.get_active())
-        #         print(route)
-        #         print("Done doing something...")
-                
-        # if epoch_number == 0:   
-        #         policy_running = False
-                #robot.get_route(start_pos, goal_pos, radio_group.get_active())
-
-        # if route != []:
-        #     for step_number, step in enumerate(route, start=1):
-        #             pygame.draw.rect(play_surface, BLACK_COLOR, Rect(step[0] * 70 + 69, step[1] * 70 + 69, 22, 22)) # A black outline.
-        #             pygame.draw.rect(play_surface, RED_COLOR, Rect(step[0] * 70 + 70, step[1] * 70 + 70, 20, 20))
-        #             step_number_text = pygame.font.Font('freesansbold.ttf', 20).render(str(step_number), True, BLACK_COLOR, None)
-        #             step_number_rect = step_number_text.get_rect()
-        #             step_number_rect.topleft = (step[0] * 70 + 69, step[1] * 70 + 69)
-        #             play_surface.blit(step_number_text, step_number_rect)
-
-        
+            # Reward text
+            # Viser totalt oppsamlet reward for den beste routen.
+            reward_text = pygame.font.Font('freesansbold.ttf', 20).render(f"Reward {reward}", True, BLACK_COLOR, None)
+            reward_rect = reward_text.get_rect()
+            reward_rect.center = (500/2, 600/2)
+            play_surface.blit(reward_text, reward_rect)
                 
 
         # Refresh the screen.

@@ -24,8 +24,8 @@ class Robot:
     q_matrix = []
     running = False
 
-
     # Konvergens-sjekk
+    # NB!: Dette har ikke blitt implementert
     q_diffs = []
     diff_num = 0.01 # Hvor høy differansen skal være før man sier det er konvergens.
     diff_loops = 10 # Hvor mange ganger på rad man skal få "konvergens" før man slutter av.
@@ -35,6 +35,7 @@ class Robot:
 
     # Greedy
     greedy_max_steps = 1000 # Hvor mange steps man skal kjøre før man bestemmer seg for at greedy ikke finner veien.
+                            # Og deretter returnere en tom array.
 
     # Reward sum
     mc_total_reward = -math.inf
@@ -44,17 +45,22 @@ class Robot:
     mc_episode_steps = []
 
     # Plotting
-    plot_reward = np.array([])
-    plot_active = True  # True om man vil ha plotting.
-    plot_q_simulations = 100 # Hvor mange q-learning simuleringer skal kjøres og plottes.
-    plot_bar = True # Dersom man vil ha bar plot.
+    plot_active = False  # True om man vil ha plotting.
+    plot_bar = False # Dersom man vil ha bar plot.
                     # Denne vil vise hvor mange som har optimal rute.
+    plot_reward = np.array([])
+    plot_q_simulations = 100 # Hvor mange q-learning simuleringer skal kjøres og plottes.
     plot_max_reward = 50 # Hva er den største oppnålige rewarden
 
 
 
     def __init__(self):
-        # Define R- and Q-matrices here.
+        """
+        Initialiserer robotens belønningsmatrise
+        Setter opp verdier for ulike typer terreng (vegg, vann, fjell, slette og mål).
+        Initialiserer Q-matrise og en besøksmatrise.
+        """
+        
 
         self.wall_value = -1000
         self.hill_value = -50
@@ -119,7 +125,14 @@ class Robot:
         return self.y_pos-1
 
     def get_next_state_mc(self, current_state: int) -> tuple:
-        # Return the next state based on Monte Carlo.
+        """
+        Returnerer neste tilstand basert på Monte Carlo-simulering
+        
+        Keyword arguments:
+        current_state -- Nåverende tilstand
+        Return: tuple(next_state, action) next_state er den neste tilstanden og action er valgt handling.
+        """
+        
         x,y = self.get_state_cord(current_state)
         action = random.randint(0,3)
         x,y = self.pos_move(current_state, action)
@@ -128,7 +141,14 @@ class Robot:
         return self.get_state(y_pos = y, x_pos=x), action
 
     def get_next_state_eg(self, state:int) -> tuple:
-        # Return the next state based on Epsilon-greedy.
+        """
+        Returnerer neste tilstand basert på Epsilon-Greedy policy.
+        
+        Keyword arguments:
+        state -- Nåverende tilstand
+        Return: tuple(next_state, action) next_state er den neste tilstanden og action er valgt handling.
+        """
+        
         if random.uniform(0, 1) > self.epsilon:
             return self.get_next_state_mc(state)
         else:
@@ -138,8 +158,9 @@ class Robot:
             next_state = self.get_state(x, y)
             return next_state, action
 
-    def monte_carlo_exploration(self, epochs: int, start_pos: dict, goal_pos: dict) -> list:
-        """Monte Carlo exploration
+    def monte_carlo_exploration(self, epochs: int, start_pos: dict, goal_pos: dict) -> tuple:
+        """
+        Utfører Monte Carlo exploration for å finne den beste ruten til målet
         
         Keyword arguments:
         epochs -- Antall episoder
@@ -192,13 +213,24 @@ class Robot:
 
         # Dersom plot er aktivert.
         # Plot reward til alle verdiene.
-        self.plot_rewards(self.plot_reward)
+        if self.plot_active:
+            self.plot_rewards(self.plot_reward)
 
         self.running = False
         return best_route, best_reward
 
-    def q_learning(self, epochs_input, start_pos, goal_pos, policy):
-
+    def q_learning(self, epochs_input: int, start_pos: dict, goal_pos: dict, policy: str) -> tuple:
+        """
+        Utfører Q-learning for å finne den optimale ruten
+        
+        Keyword arguments:
+        epochs_input -- Antall episoder som skal kjøres
+        start_pos - Start posisjon i dict ('X' og 'Y')
+        goal_pos - Mål posisjon i dict ('X' og 'Y')
+        policy - Valgt policy (Q-learning eller Epsilon)
+        Return: Returnerer en tuple som inneholder en lsite med steps og total belønning
+        """
+        
         if self.plot_active:
             simulations = self.plot_q_simulations
         else:
@@ -243,7 +275,8 @@ class Robot:
             simulations -= 1
             best_scores = np.append(best_scores, q_total_reward)
         self.running = False
-        self.plot_rewards(best_scores)
+        if self.plot_active:
+            self.plot_rewards(best_scores)
         return route, q_total_reward
 
         
@@ -366,11 +399,20 @@ class Robot:
         x_pos = x_pos if x_pos is not None else self.x_pos
         return (y_pos-1)*6 + x_pos
     
-    def reset_pos(self, start_pos):
+    def reset_pos(self, start_pos: int):
+        """
+        Setter roboten i start posisjon.
+        """
+        
         self.x_pos = start_pos['X']
         self.y_pos = start_pos['Y']
 
-    def pos_move(self, state, action):
+    def pos_move(self, state: int, action: int) -> tuple:
+        """
+        Flytter roboten basert på state og action.
+        Dersom man ikke prøver å gå i veggen.
+        """
+        
         x,y = self.get_state_cord(state)
         if action == 0: #Opp
             if y != 1:
@@ -387,7 +429,16 @@ class Robot:
         return x, y
     
 
-    def get_next_state_greedy(self, state):
+    def get_next_state_greedy(self, state: int) -> tuple:
+        """
+        Returnerer neste tilstand sine kordinater basert på greedy policy
+        
+        Keyword arguments:
+        state -- Den nåværende tilstanden
+        Return: tuple med x, y og reward
+        """
+        
+
         x,y = self.get_state_cord(state)
 
         # Legger de som er besøkt til en visited liste.
@@ -476,6 +527,15 @@ class Robot:
 
     
     def reward_update(self, current_state, action, next_state):
+        """
+        Oppdaterer Q-Matrisen basert på Bellman sin Q formel.
+        
+        Keyword arguments:
+        current_state -- Nåværende tilstand
+        action -- Handling som ble utført i nåværende tilstand
+        next_state -- Den nye tilstanden etter handlingen er utført.
+        """
+        
         self.q_matrix[current_state][action] = (1 - self.alpha) * self.q_matrix[current_state][action]\
                                                 + self.alpha * (self.reward_matrix[current_state][action]\
                                                 + self.gamma * max(self.q_matrix[next_state]))
