@@ -208,6 +208,23 @@ class Perceptron:
         Set to None if Perceptron has not yet been trained.
     """
 
+    """ 
+    **** SLETTT ****
+
+        _init_():
+            w1 = random
+            w2 = random
+
+        predict(X1,X2):
+            I=X1*W1 + X2*W2
+            V = 1 if I >= 1 else 0
+
+        train(X1, X2, Z)
+        V = Predict(X1, X2)
+        W1 = w1 + a*(Z(?)-1)*X1
+        W2 = w2 + a*(Z(?)-1)*X2
+    """
+    
     def __init__(self):
         """Initialize perceptron"""
         pass
