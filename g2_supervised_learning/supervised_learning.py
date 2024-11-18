@@ -48,12 +48,12 @@ def read_from_csv(csv_file_path: str, delimiter: str) -> tuple:
     return np.array(header), np.array(content)
 
 
-def check_content_is_in_matrix(header: np.array, desired_values: np.array) -> list:
+def check_content_is_in_matrix(header: NDArray, desired_values: NDArray) -> list:
     """Checks if the desired values are present in the header and returns a list of True/False values.
 
     Args:
-        header (np.array): An numpy array containing the headers from a csv file.
-        desired_values (np.array): An numpy array containing a list of the desired values.
+        header (NDArray): An numpy array containing the headers from a csv file.
+        desired_values (NDArray): An numpy array containing a list of the desired values.
 
     Returns:
         check_list (list): List with True/False depending on presence in header and desired_values.
@@ -81,16 +81,16 @@ def is_number(element) -> bool:
     except ValueError:
         return False
 
-def remove_uncomplete_data(X: np.array, header: np.array, label_column: str) -> tuple[np.array, np.array]:
+def remove_uncomplete_data(X: NDArray, header: NDArray, label_column: str) -> tuple[NDArray, NDArray]:
     """Removes uncomplete data (typically involving 'NA').
 
     Args:
-        X (np.array): The NumPy matrix with the content.
-        header (np.array): Headers for the data in X.
+        X (NDArray): The NumPy matrix with the content.
+        header (NDArray): Headers for the data in X.
         label_column (str): The header for the label variable (y).
 
     Returns:
-        tuple[np.array, np.array]: Returns a X and y, where all rows with uncomplete data has been
+        tuple[NDArray, NDArray]: Returns a X and y, where all rows with uncomplete data has been
         removed.
     """
     y_check = np.array(check_content_is_in_matrix(header, np.array([label_column])))
@@ -113,15 +113,15 @@ def remove_uncomplete_data(X: np.array, header: np.array, label_column: str) -> 
     return X_cleaned, y_cleaned
 
 
-def normalize_data(X: np.array) -> np.array:
+def normalize_data(X: NDArray) -> NDArray:
     """Normalizing the data based on Z-score.
         Each feature will have a mean of 0, and a standard deviation of 1.
 
     Args:
-        X (np.array): Input matrix, to be normalized.
+        X (NDArray): Input matrix, to be normalized.
 
     Returns:
-        np.array: X matrix, with normalized data.
+        NDArray: X matrix, with normalized data.
     """
     length = X.shape[1]
     X = np.array(X, dtype='f')
@@ -134,14 +134,14 @@ def normalize_data(X: np.array) -> np.array:
     return X
 
 
-def convert_text_to_index(y: np.array) -> np.array:
+def convert_text_to_index(y: NDArray) -> NDArray:
     """Converting unique text from y to unique numbers.
 
     Args:
-        y (np.array): NumPy Array, with text elements.
+        y (NDArray): NumPy Array, with text elements.
 
     Returns:
-        np.array: NumPy Array, with numbers instead of text.
+        NDArray: NumPy Array, with numbers instead of text.
     """
     unique_list = np.unique(y)
     unique_numeric = np.searchsorted(unique_list, y) # NB: ChatGPT har hjulpet til her.
@@ -213,15 +213,15 @@ def convert_y_to_binary(y: NDArray, y_value_true: int) -> NDArray:
     return np.array(y_binary)
 
 
-def shuffel_data_set(X: np.array, y: np.array) -> tuple[np.array, np.array]:
+def shuffel_data_set(X: NDArray, y: NDArray) -> tuple[NDArray, NDArray]:
     """Shuffel function. Is randomizing the order for X and y.
 
     Args:
-        X (np.array): X, the content matrix.
-        y (np.array): y, the label matrix.
+        X (NDArray): X, the content matrix.
+        y (NDArray): y, the label matrix.
 
     Returns:
-        tuple[np.array, np.array]: Returns the shuffled arrays for X and y.
+        tuple[NDArray, np.NDArray]: Returns the shuffled arrays for X and y.
     """
     rng = np.random.default_rng()
     ind = rng.permutation(X.shape[0])
@@ -282,7 +282,13 @@ def accuracy(y_pred: NDArray, y_true: NDArray) -> float:
     # Notes:
     See https://en.wikipedia.org/wiki/Accuracy_and_precision#In_classification
     """
-    pass
+    correct_count = 0
+    length = len(y_pred.shape[0])
+    for i in range(length):
+        if y_pred[i] == y_true[i]:
+            correct_count += 1
+    accuracy = correct_count/(length)
+    return accuracy
 
 
 ##############################
@@ -398,27 +404,90 @@ class Perceptron:
         W2 = w2 + a*(Z(?)-1)*X2
     """
     
-    def __init__(self):
+    def __init__(self, n_features: int, bias: float = 0):
         """Initialize perceptron"""
-        pass
+        self.weights = np.random.rand(n_features)
+        self.bias = bias
+        self.converged = None
 
-    def predict_single(self, x: NDArray) -> int:
+        # Ved init skal weights settes til et random tall mellom 0 og 1.
+
+    def predict_single(self, X: NDArray, F: int = 0) -> int:
         """Predict / calculate perceptron output for single observation / row x
         <Write rest of docstring here>
+        Args:
+            x (NDArray): Et datapunkt for hver feature som skal testes.
+            F (int): Aktiveringsfunksjonene. Som standard "Threshold".
+
+        Returns:
+            int: _description_
+            E: Error ****???????????????????????**** Skal denne implementeres? Ødelegger kanskje for auto-test...
+                E = Y - V
         """
-        pass
+        # I = X1*w1 + X2*w2 + ... + Xn*wn + bias * 1
+        # NB: Hvis I er for "stor" introduser en negativ bias
+        # NB: Hvis I er for "liten" introduser en positiv bias
+        # NB: Bias blir også lært opp på samme måte som de andre.
+        # V = F(I) - F er aktiveringsfunksjonen.
+        # V = 1 if I > 0 else 0
+
+        #IF F==0: # Threshold
+
+        #IF F==1 # TANH
+
+        #IF F==3 # Logistic
+        I = 0
+
+        for i in range(len(X)):
+            I += X[i] * self.weights[i]
+        
+        I += self.bias
+        
+        return 1 if I >= 0 else 0
 
     def predict(self, X: NDArray) -> NDArray:
         """Predict / calculate perceptron output for data matrix X
         <Write rest of docstring here>
         """
-        pass
+        X_predict = []
+        for i in range(X.shape[0]):
+            if self.predict_single(X[i]) == 0:
+                X_predict.append(False)
+            else:
+                X_predict.append(True)
+        return np.array(X_predict)
 
-    def train(self, X: NDArray, y: NDArray, learning_rate: float, max_epochs: int):
+
+    def train(self, X: NDArray, y: NDArray, learning_rate: float = 0.01, max_epochs: int = 1000):
         """Fit perceptron to training data X with binary labels y
         <Write rest of docstring here>
         """
-        pass
+
+        """ *******************************SLETT*************************
+            train(X1, X2, Z)
+            V = Predict(X1, X2)
+            W1 = w1 + a*(Z(?)-1)*X1
+            W2 = w2 + a*(Z(?)-1)*X2
+        """
+        self.converged = False
+        for epoch in range(max_epochs):
+            V = self.predict(X)
+            errors = 0
+            #print(f"X-Shape: {X.shape}")
+            for i in range(X.shape[0]):
+                for j in range(X.shape[1]-1):
+                    #print(f"learning rate: {learning_rate} yi: {y[i]} Vi: {V[i]} Xi: {X[i][j]}")
+                    # **********************************!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    self.weights[i] = self.weights[i] + learning_rate*(y[i] - V[i])*X[i][j]
+                    self.bias += learning_rate*(y[i] - V[i])*(-1)
+
+                    if y[i] != V[i]:
+                        errors += 1
+
+                if errors == 0:
+                    self.converged = True
+                    break
+            #print(f"Weight: {self.weights}")
 
     def decision_boundary_slope_intercept(self) -> tuple[float, float]:
         """Calculate slope and intercept for decision boundary line (2-feature data only)
@@ -587,6 +656,29 @@ if __name__ == "__main__":
     # Oppgave 3 - Testing
     # 3. ---- SLETT -------
     train, test = train_test_split(X, y, 0.2)
-    print(len(train[0]))
-    print(len(train[1]))
+    X_train = train[0]
+    X_test = test[0]
+    y_train = train[1]
+    y_test = test[1]
+    print(len(X_train))
+    print(len(y_train))
+    print(len(X_test))
+    print(len(y_test))
+    
     # 3. ------------------
+
+
+    # Oppgave Perceptron
+    # 4. ---- SLETT -------
+
+    p = Perceptron(4, 0)
+    #print(p.predict_single(test[0][0]))
+    print("BEFORE:")
+    print(p.weights)
+    print(p.bias)
+    p.train(X_train, y_train)
+    print("AFTER:")
+    print(p.weights)
+    print(p.bias)
+
+    # 4. ------------------
