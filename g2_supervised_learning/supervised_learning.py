@@ -23,8 +23,142 @@ from numpy.typing import NDArray
 #########################################
 
 
-def read_data() -> tuple[NDArray, NDArray]:
+def read_from_csv(csv_file_path: str, delimiter: str) -> tuple:
+    """Read the CSV file and returning its content.
+
+    Args:
+        csv_file_path:
+            String, path for the csv file to read from.
+        delimiter:
+            String, how the csv file i seperated.
+
+    
+    Returns:
+        tuple: A tuple containing two NumPy arrays:
+        - First header. The first line read from the CSV file.
+        - Second content. All other rows from the CSV file.
+    
+    """
+    with open(csv_file_path, newline='') as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=delimiter)
+        header = next(csv_reader)
+        content = []
+        for x in csv_reader:
+            content.append(x)
+    return np.array(header), np.array(content)
+
+
+def check_content_is_in_matrix(header: np.array, desired_values: np.array) -> list:
+    """Checks if the desired values are present in the header and returns a list of True/False values.
+
+    Args:
+        header (np.array): An numpy array containing the headers from a csv file.
+        desired_values (np.array): An numpy array containing a list of the desired values.
+
+    Returns:
+        check_list (list): List with True/False depending on presence in header and desired_values.
+    """
+    check_list = []
+    for i in range(len(header)):
+        if header[i] in desired_values:
+            check_list.append(True)
+        else:
+            check_list.append(False)
+    return check_list
+
+def is_number(element) -> bool:
+    """Check if the input element is a number or not.
+
+    Args:
+        element (NA): Variable to check.
+
+    Returns:
+        bool: True if it's a number, False if not.
+    """
+    try:
+        float(element)
+        return True
+    except ValueError:
+        return False
+
+def remove_uncomplete_data(X: np.array, header: np.array, label_column: str) -> tuple[np.array, np.array]:
+    """Removes uncomplete data (typically involving 'NA').
+
+    Args:
+        X (np.array): The NumPy matrix with the content.
+        header (np.array): Headers for the data in X.
+        label_column (str): The header for the label variable (y).
+
+    Returns:
+        tuple[np.array, np.array]: Returns a X and y, where all rows with uncomplete data has been
+        removed.
+    """
+    y_check = np.array(check_content_is_in_matrix(header, np.array([label_column])))
+    valid_rows = []
+
+    y = X[:, y_check]
+    X = X[:, ~y_check]
+
+    for i in range(len(X)):
+        valid_row = True
+        for j in range(len(X[i])):
+            if not is_number(X[i][j]):
+                valid_row = False
+        if valid_row:
+            valid_rows.append(i)
+
+    X_cleaned = X[valid_rows]
+    y_cleaned = y[valid_rows]
+
+    return X_cleaned, y_cleaned
+
+
+def normalize_data(X: np.array) -> np.array:
+    """Normalizing the data based on Z-score.
+        Each feature will have a mean of 0, and a standard deviation of 1.
+
+    Args:
+        X (np.array): Input matrix, to be normalized.
+
+    Returns:
+        np.array: X matrix, with normalized data.
+    """
+    length = X.shape[1]
+    X = np.array(X, dtype='f')
+        
+    for i in range(length):
+        std = np.std(X[:, i])
+        mean = np.mean(X[:, i])
+        for z in range(len(X[:, i])):
+            X[:, i][z] = ((X[:, i][z] - mean)/std)
+    return X
+
+
+def convert_text_to_index(y: np.array) -> np.array:
+    """Converting unique text from y to unique numbers.
+
+    Args:
+        y (np.array): NumPy Array, with text elements.
+
+    Returns:
+        np.array: NumPy Array, with numbers instead of text.
+    """
+    unique_list = np.unique(y)
+    unique_numeric = np.searchsorted(unique_list, y) # NB: ChatGPT har hjulpet til her.
+    return unique_numeric
+
+
+def read_data(path: str, delmiter: str, desired_columns: list[str], label_column: str) -> tuple[NDArray, NDArray]:
     """Read data from CSV file, remove rows with missing data, and normalize
+
+    Parameters
+    ----------
+    path:
+        String, path for the csv file to read from.
+    delimiter:
+        String, how the csv file i seperated.
+    label:
+        String, header name for the label-vector (y)
 
     Returns
     -------
@@ -43,7 +177,14 @@ def read_data() -> tuple[NDArray, NDArray]:
     -----
     Z-score normalization: https://en.wikipedia.org/wiki/Standard_score .
     """
-    pass
+    header, content = read_from_csv(path, delmiter)
+    desired_columns = np.append(desired_columns, label_column)
+    check_list = check_content_is_in_matrix(header, desired_columns)
+    X, y = remove_uncomplete_data(content[:, check_list], header[check_list], label_column)
+    X = normalize_data(X)
+    y = convert_text_to_index(y)
+    return X, y
+
 
 
 def convert_y_to_binary(y: NDArray, y_value_true: int) -> NDArray:
@@ -63,8 +204,30 @@ def convert_y_to_binary(y: NDArray, y_value_true: int) -> NDArray:
         Binary vector, shape (n_samples,)
         1 for values in y that are equal to y_value_true, 0 otherwise
     """
-    pass
+    y_binary = []
+    for i in range(len(y)):
+        if y[i] == y_value_true:
+            y_binary.append(True)
+        else:
+            y_binary.append(False)
+    return np.array(y_binary)
 
+
+def shuffel_data_set(X: np.array, y: np.array) -> tuple[np.array, np.array]:
+    """Shuffel function. Is randomizing the order for X and y.
+
+    Args:
+        X (np.array): X, the content matrix.
+        y (np.array): y, the label matrix.
+
+    Returns:
+        tuple[np.array, np.array]: Returns the shuffled arrays for X and y.
+    """
+    rng = np.random.default_rng()
+    ind = rng.permutation(X.shape[0])
+    X_shuffled = X[ind]
+    y_shuffled = y[ind]
+    return X_shuffled, y_shuffled
 
 def train_test_split(
     X: NDArray, y: NDArray, train_frac: float
@@ -87,7 +250,17 @@ def train_test_split(
     (X_test,y_test): tuple[NDArray, NDArray]]
         Test dataset
     """
-    pass
+
+    X, y = shuffel_data_set(X, y)
+
+    split_index = int(len(X)*train_frac)
+
+    X_train = X[:split_index]
+    X_test = X[split_index:]
+    y_train = y[:split_index]
+    y_test = y[split_index:]
+
+    return (X_train, y_train), (X_test, y_test)
 
 
 def accuracy(y_pred: NDArray, y_true: NDArray) -> float:
@@ -393,7 +566,27 @@ class DecisionTree:
 ############
 
 if __name__ == "__main__":
-    pass
     # Demonstrate your code / solutions here.
     # Be tidy; don't cut-and-paste lots of lines.
     # Experiments can be implemented as separate functions that are called here.
+
+    # Oppgave 1 - Testing
+    # 1. ----- SLETT -----
+    desired_columns = np.array(['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g'])
+    label_column = 'species'
+    X, y = read_data("palmer_penguins.csv", ",", desired_columns, label_column)
+    # 1. -----------------
+
+    # Oppgave 2 - Testing
+    # 2. ---- SLETT -------
+    y_binary = convert_y_to_binary(y, 0)
+    #print(y_binary)
+    # 2. ------------------
+
+
+    # Oppgave 3 - Testing
+    # 3. ---- SLETT -------
+    train, test = train_test_split(X, y, 0.2)
+    print(len(train[0]))
+    print(len(train[1]))
+    # 3. ------------------
