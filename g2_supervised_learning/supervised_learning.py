@@ -207,9 +207,9 @@ def convert_y_to_binary(y: NDArray, y_value_true: int) -> NDArray:
     y_binary = []
     for i in range(len(y)):
         if y[i] == y_value_true:
-            y_binary.append(True)
+            y_binary.append(1)
         else:
-            y_binary.append(False)
+            y_binary.append(0)
     return np.array(y_binary)
 
 
@@ -227,7 +227,8 @@ def shuffel_data_set(X: NDArray, y: NDArray) -> tuple[NDArray, NDArray]:
     ind = rng.permutation(X.shape[0])
     X_shuffled = X[ind]
     y_shuffled = y[ind]
-    return X_shuffled, y_shuffled
+
+    return X_shuffled, y_shuffled.flatten()
 
 def train_test_split(
     X: NDArray, y: NDArray, train_frac: float
@@ -457,36 +458,86 @@ class Perceptron:
                 X_predict.append(True)
         return np.array(X_predict)
 
+    def train(self, X: NDArray, y: NDArray, learning_rate: float = 1, max_epochs: int = 10000):
+        """Train perceptron on dataset X with binary labels y
 
-    def train(self, X: NDArray, y: NDArray, learning_rate: float = 0.01, max_epochs: int = 1000):
-        """Fit perceptron to training data X with binary labels y
-        <Write rest of docstring here>
-        """
-
-        """ *******************************SLETT*************************
-            train(X1, X2, Z)
-            V = Predict(X1, X2)
-            W1 = w1 + a*(Z(?)-1)*X1
-            W2 = w2 + a*(Z(?)-1)*X2
+        Args:
+            X (NDArray): Training data with shape (n_samples, n_features)
+            y (NDArray): Labels with shape (n_samples,)
+            learning_rate (float): The learning rate (default=0.01)
+            max_epochs (int): Maximum number of epochs (default=10000)
         """
         self.converged = False
+        
         for epoch in range(max_epochs):
-            V = self.predict(X)
             errors = 0
+            for i in range(len(X)):
+                # Predict the output for the current sample
+                V = self.predict_single(X[i])
+                
+                #print(f"Weight added: {learning_rate*(y[i] - V) * X[i]}")
+
+                # Update the weights and bias
+                self.weights += learning_rate * (y[i] - V) * X[i]
+                self.bias += learning_rate * (y[i] - V) * 1
+
+                # Check if there was an error (misclassification)
+                if y[i] != V:
+                    errors += 1
+
+            # If there are no errors, the model has converged
+            if errors == 0:
+                self.converged = True
+                # print("CONVERGED")
+                # print(errors)
+                break
+            #print(errors)
+    # def train(self, X: NDArray, y: NDArray, learning_rate: float = 0.01, max_epochs: int = 10000):
+    #     """Fit perceptron to training data X with binary labels y
+    #     <Write rest of docstring here>
+    #     """
+
+    #     """ *******************************SLETT*************************
+    #         train(X1, X2, Z)
+    #         V = Predict(X1, X2)
+    #         W1 = w1 + a*(Z(?)-1)*X1
+    #         W2 = w2 + a*(Z(?)-1)*X2
+    #     """
+    #     self.converged = False
+    #     for epoch in range(max_epochs):
+    #         errors = 0
+    #         for i in range(len(X)):
+    #             V = self.predict_single(X[i])
+    #             for feature in range(len(X[i])):
+    #                 #print(f"Weight added: {learning_rate*(y[i] - V) * X[i][feature]}")
+    #                 self.weights += learning_rate*(y[i] - V) * X[i][feature]
+    #                 self.bias += learning_rate*(y[i] - V) * (-1)
+
+    #                 if y[i] != V:
+    #                     errors += 1
+
+    #         if errors == 0:
+    #             self.converged = True
+    #             break
+
+
+
+            # V = self.predict(X)
+            # errors = 0
             #print(f"X-Shape: {X.shape}")
-            for i in range(X.shape[0]):
-                for j in range(X.shape[1]-1):
-                    #print(f"learning rate: {learning_rate} yi: {y[i]} Vi: {V[i]} Xi: {X[i][j]}")
-                    # **********************************!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    self.weights[i] = self.weights[i] + learning_rate*(y[i] - V[i])*X[i][j]
-                    self.bias += learning_rate*(y[i] - V[i])*(-1)
+            # for i in range(X.shape[0]):
+            #     for j in range(X.shape[1]-1):
+            #         #print(f"learning rate: {learning_rate} yi: {y[i]} Vi: {V[i]} Xi: {X[i][j]}")
+            #         # **********************************!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            #         self.weights[i] = self.weights[i] + learning_rate*(y[i] - V[i])*X[i][j]
+            #         self.bias += learning_rate*(y[i] - V[i])*(-1)
 
-                    if y[i] != V[i]:
-                        errors += 1
+            #         if y[i] != V[i]:
+            #             errors += 1
 
-                if errors == 0:
-                    self.converged = True
-                    break
+            #     if errors == 0:
+            #         self.converged = True
+            #         break
             #print(f"Weight: {self.weights}")
 
     def decision_boundary_slope_intercept(self) -> tuple[float, float]:
@@ -641,29 +692,33 @@ if __name__ == "__main__":
 
     # Oppgave 1 - Testing
     # 1. ----- SLETT -----
-    desired_columns = np.array(['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g'])
+    #desired_columns = np.array(['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g'])
+    desired_columns = np.array(['bill_depth_mm', 'flipper_length_mm'])
     label_column = 'species'
     X, y = read_data("palmer_penguins.csv", ",", desired_columns, label_column)
     # 1. -----------------
 
     # Oppgave 2 - Testing
     # 2. ---- SLETT -------
-    y_binary = convert_y_to_binary(y, 0)
+    y_binary = convert_y_to_binary(y, 2)
+    print(y_binary)
     #print(y_binary)
     # 2. ------------------
 
 
     # Oppgave 3 - Testing
     # 3. ---- SLETT -------
-    train, test = train_test_split(X, y, 0.2)
+    train, test = train_test_split(X, y_binary, 0.2)
     X_train = train[0]
     X_test = test[0]
     y_train = train[1]
     y_test = test[1]
-    print(len(X_train))
-    print(len(y_train))
-    print(len(X_test))
-    print(len(y_test))
+    print(X_train)
+    print(y_train)
+    # print(len(X_train))
+    # print(len(y_train))
+    # print(len(X_test))
+    # print(len(y_test))
     
     # 3. ------------------
 
@@ -671,14 +726,18 @@ if __name__ == "__main__":
     # Oppgave Perceptron
     # 4. ---- SLETT -------
 
-    p = Perceptron(4, 0)
+    p = Perceptron(2, 0)
     #print(p.predict_single(test[0][0]))
     print("BEFORE:")
     print(p.weights)
     print(p.bias)
+    #print(f"Data sent in: X-train: {X_train=} y-train: {y_train=}")
     p.train(X_train, y_train)
     print("AFTER:")
     print(p.weights)
     print(p.bias)
+
+    print(f"Train X: {X_test[3]}, y: {y_train[3]}")
+    print(p.predict_single(X_test[3]))
 
     # 4. ------------------
