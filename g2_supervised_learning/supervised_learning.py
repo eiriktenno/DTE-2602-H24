@@ -313,7 +313,17 @@ def gini_impurity(y: NDArray) -> float:
     # Notes:
     - Wikipedia ref.: https://en.wikipedia.org/wiki/Decision_tree_learning#Gini_impurity
     """
-    pass
+
+    n_samples = y.shape[0]
+    unique_list, counts = np.unique(y, return_counts=True)
+    print(f"Unique_list: {unique_list} counts: {counts}")
+    
+    sumarize = 0
+    for i in range(len(unique_list)):
+        sumarize += (counts[i]/n_samples)**2
+    
+    return 1 - sumarize
+
 
 
 def gini_impurity_reduction(y: NDArray, left_mask: NDArray) -> float:
@@ -815,3 +825,4 @@ if __name__ == "__main__":
     # plt.show()
 
 
+    print(gini_impurity(y_train))
