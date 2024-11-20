@@ -284,7 +284,7 @@ def accuracy(y_pred: NDArray, y_true: NDArray) -> float:
     See https://en.wikipedia.org/wiki/Accuracy_and_precision#In_classification
     """
     correct_count = 0
-    length = len(y_pred.shape[0])
+    length = len(y_pred)
     for i in range(length):
         if y_pred[i] == y_true[i]:
             correct_count += 1
@@ -413,7 +413,7 @@ class Perceptron:
 
         # Ved init skal weights settes til et random tall mellom 0 og 1.
 
-    def predict_single(self, X: NDArray, F: int = 0) -> int:
+    def predict_single(self, X: NDArray) -> int:
         """Predict / calculate perceptron output for single observation / row x
         <Write rest of docstring here>
         Args:
@@ -425,23 +425,10 @@ class Perceptron:
             E: Error ****???????????????????????**** Skal denne implementeres? Ødelegger kanskje for auto-test...
                 E = Y - V
         """
-        # I = X1*w1 + X2*w2 + ... + Xn*wn + bias * 1
-        # NB: Hvis I er for "stor" introduser en negativ bias
-        # NB: Hvis I er for "liten" introduser en positiv bias
-        # NB: Bias blir også lært opp på samme måte som de andre.
-        # V = F(I) - F er aktiveringsfunksjonen.
-        # V = 1 if I > 0 else 0
-
-        #IF F==0: # Threshold
-
-        #IF F==1 # TANH
-
-        #IF F==3 # Logistic
         I = 0
-
         for i in range(len(X)):
             I += X[i] * self.weights[i]
-        
+    
         I += self.bias
         
         return 1 if I >= 0 else 0
@@ -453,12 +440,12 @@ class Perceptron:
         X_predict = []
         for i in range(X.shape[0]):
             if self.predict_single(X[i]) == 0:
-                X_predict.append(False)
+                X_predict.append(0)
             else:
-                X_predict.append(True)
+                X_predict.append(1)
         return np.array(X_predict)
 
-    def train(self, X: NDArray, y: NDArray, learning_rate: float = 1, max_epochs: int = 10000):
+    def train(self, X: NDArray, y: NDArray, learning_rate: float = 0.1, max_epochs: int = 10000):
         """Train perceptron on dataset X with binary labels y
 
         Args:
@@ -472,79 +459,30 @@ class Perceptron:
         for epoch in range(max_epochs):
             errors = 0
             for i in range(len(X)):
-                # Predict the output for the current sample
                 V = self.predict_single(X[i])
-                
-                #print(f"Weight added: {learning_rate*(y[i] - V) * X[i]}")
 
-                # Update the weights and bias
                 self.weights += learning_rate * (y[i] - V) * X[i]
                 self.bias += learning_rate * (y[i] - V) * 1
 
-                # Check if there was an error (misclassification)
                 if y[i] != V:
                     errors += 1
 
-            # If there are no errors, the model has converged
             if errors == 0:
                 self.converged = True
-                # print("CONVERGED")
-                # print(errors)
                 break
-            #print(errors)
-    # def train(self, X: NDArray, y: NDArray, learning_rate: float = 0.01, max_epochs: int = 10000):
-    #     """Fit perceptron to training data X with binary labels y
-    #     <Write rest of docstring here>
-    #     """
+            #print(f"Epoch {epoch}, Weights: {self.weights}, Bias: {self.bias}")
 
-    #     """ *******************************SLETT*************************
-    #         train(X1, X2, Z)
-    #         V = Predict(X1, X2)
-    #         W1 = w1 + a*(Z(?)-1)*X1
-    #         W2 = w2 + a*(Z(?)-1)*X2
-    #     """
-    #     self.converged = False
-    #     for epoch in range(max_epochs):
-    #         errors = 0
-    #         for i in range(len(X)):
-    #             V = self.predict_single(X[i])
-    #             for feature in range(len(X[i])):
-    #                 #print(f"Weight added: {learning_rate*(y[i] - V) * X[i][feature]}")
-    #                 self.weights += learning_rate*(y[i] - V) * X[i][feature]
-    #                 self.bias += learning_rate*(y[i] - V) * (-1)
-
-    #                 if y[i] != V:
-    #                     errors += 1
-
-    #         if errors == 0:
-    #             self.converged = True
-    #             break
-
-
-
-            # V = self.predict(X)
-            # errors = 0
-            #print(f"X-Shape: {X.shape}")
-            # for i in range(X.shape[0]):
-            #     for j in range(X.shape[1]-1):
-            #         #print(f"learning rate: {learning_rate} yi: {y[i]} Vi: {V[i]} Xi: {X[i][j]}")
-            #         # **********************************!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            #         self.weights[i] = self.weights[i] + learning_rate*(y[i] - V[i])*X[i][j]
-            #         self.bias += learning_rate*(y[i] - V[i])*(-1)
-
-            #         if y[i] != V[i]:
-            #             errors += 1
-
-            #     if errors == 0:
-            #         self.converged = True
-            #         break
-            #print(f"Weight: {self.weights}")
 
     def decision_boundary_slope_intercept(self) -> tuple[float, float]:
         """Calculate slope and intercept for decision boundary line (2-feature data only)
         <Write rest of docstring here>
         """
-        pass
+        # slope = -(weights[0]/weights[2])/(weights[0]/weights[1])  
+        # intercept = -weights[0]/weights[2]
+
+        slope = -(self.bias/self.weights[1])/(self.bias/self.weights[0])  
+        intercept = -self.bias/self.weights[1]
+        return slope, intercept
 
 
 ####################
@@ -693,39 +631,63 @@ if __name__ == "__main__":
     # Oppgave 1 - Testing
     # 1. ----- SLETT -----
     #desired_columns = np.array(['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g'])
-    desired_columns = np.array(['bill_depth_mm', 'flipper_length_mm'])
+    #desired_columns = np.array(['bill_depth_mm', 'flipper_length_mm'])
+    desired_columns = np.array(['bill_length_mm', 'flipper_length_mm'])
     label_column = 'species'
     X, y = read_data("palmer_penguins.csv", ",", desired_columns, label_column)
     # 1. -----------------
 
     # Oppgave 2 - Testing
     # 2. ---- SLETT -------
-    y_binary = convert_y_to_binary(y, 2)
+    # y_binary = convert_y_to_binary(y, 2)
+    y_binary = convert_y_to_binary(y, 1)
     print(y_binary)
     #print(y_binary)
+    #### PLOT
+    for label_value in np.unique(y):
+        plt.scatter(x=X[y_binary==label_value, 0],
+                    y=X[y_binary==label_value, 1])
+
+    plt.xlabel('Feature 0')
+    plt.ylabel('Feature 1')
+    plt.title('Binary')
+    plt.show()
     # 2. ------------------
 
 
     # Oppgave 3 - Testing
     # 3. ---- SLETT -------
-    train, test = train_test_split(X, y_binary, 0.2)
+    train, test = train_test_split(X, y_binary, 0.8)
     X_train = train[0]
     X_test = test[0]
+
     y_train = train[1]
     y_test = test[1]
-    print(X_train)
-    print(y_train)
-    # print(len(X_train))
-    # print(len(y_train))
-    # print(len(X_test))
-    # print(len(y_test))
-    
+
+    #### PLOT TRAINING SET
+    for label_value in np.unique(y_train):
+        plt.scatter(x=X_train[y_train==label_value, 0],
+                    y=X_train[y_train==label_value, 1])
+
+    plt.xlabel('Feature 0')
+    plt.ylabel('Feature 1')
+    plt.title('Train')
+    plt.show()
+
+    #### PLOT TEST SET
+    for label_value in np.unique(y_test):
+        plt.scatter(x=X_test[y_test==label_value, 0],
+                    y=X_test[y_test==label_value, 1])
+
+    plt.xlabel('Feature 0')
+    plt.ylabel('Feature 1')
+    plt.title('Test')
+    plt.show()
     # 3. ------------------
 
 
     # Oppgave Perceptron
     # 4. ---- SLETT -------
-
     p = Perceptron(2, 0)
     #print(p.predict_single(test[0][0]))
     print("BEFORE:")
@@ -737,7 +699,119 @@ if __name__ == "__main__":
     print(p.weights)
     print(p.bias)
 
-    print(f"Train X: {X_test[3]}, y: {y_train[3]}")
-    print(p.predict_single(X_test[3]))
+    # ################################################################
+    ### Basert på: https://stackoverflow.com/questions/31292393/how-do-you-draw-a-line-using-the-weight-vector-in-a-linear-perceptron?rq=1
+    ### Samt støtte fra ChatGPT
+    # ################################################################
+    # Plot data
+    for label in np.unique(y):
+        plt.scatter(X_train[y_train == label, 0], X_train[y_train == label, 1], label=f'Class {label}')
+    
+
+    x_min, x_max = np.min(X_train[:, 0]), np.max(X_train[:, 0])
+    x_points = np.linspace(x_min, x_max, 100)
+    y_points = -(p.weights[0] * x_points + p.bias) / p.weights[1]
+
+    plt.plot(x_points, y_points, 'k-', label='Decision boundary')
+    plt.xlabel('Feature 0')
+    plt.ylabel('Feature 1')
+    plt.title('Data and Decision Boundary')
+    plt.grid(True)
+    plt.show()
+    # ################################################################
+
+
+    y_test_result = p.predict(X_test)
+    # ################################################################
+    ### Basert på: https://stackoverflow.com/questions/31292393/how-do-you-draw-a-line-using-the-weight-vector-in-a-linear-perceptron?rq=1
+    ### Samt støtte fra ChatGPT
+    # ################################################################
+    # Plot data
+    for label in np.unique(y):
+        plt.scatter(X_test[y_test_result == label, 0], X_test[y_test_result == label, 1], label=f'Class {label}')
+    
+
+    x_min, x_max = np.min(X_test[:, 0]), np.max(X_test[:, 0])
+    x_points = np.linspace(x_min, x_max, 100)
+    y_points = -(p.weights[0] * x_points + p.bias) / p.weights[1]
+
+    plt.plot(x_points, y_points, 'k-', label='Decision boundary')
+    plt.xlabel('Feature 0')
+    plt.ylabel('Feature 1')
+    plt.title('Data and Decision Boundary')
+    plt.grid(True)
+    plt.show()
+    # ################################################################
+
 
     # 4. ------------------
+
+    #PLOT TESTING - MED FUNKSJONSTEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    slope, intercept = p.decision_boundary_slope_intercept()
+    for label in np.unique(y):
+        plt.scatter(X_test[y_test_result == label, 0], X_test[y_test_result == label, 1], label=f'Class {label}')
+
+    x_values = np.linspace(np.amin(X[:, 0]), np.amax(X[:, 0]), 100)
+    y_values = slope * x_values + intercept
+
+    plt.plot(x_values, y_values, 'k-', label='line')
+
+    plt.grid(True)
+    plt.show()
+
+
+    # PREDICT TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    print(X_test)
+    print(y_test)
+    predicted_list = p.predict(X_test)
+    print(f"{np.column_stack((y_test, predicted_list))=}")
+
+    print(f"ACCURACY: {accuracy(predicted_list, y_test)}")
+
+    #### PLOT
+    # for label_value in np.unique(y):
+    #     plt.scatter(x=X[y_binary==label_value, 0],
+    #                 y=X[y_binary==label_value, 1])
+
+    # plt.xlabel('Feature 0')
+    # plt.ylabel('Feature 1')
+    # plt.title('Binary')
+    # plt.show()
+
+
+
+    # PERCEPTRON OPPGAVE 2
+    """Lag et nytt perceptron som skal skille arten Chinstrap fra de to andre. 
+    Bruk kun kolonnene bill_length_mm og bill_depth_mm fra X-matrisa (ikke samme som over!). 
+    Tren perceptron'et med ( X train , y train ). 
+    Merk at det ikke er sikkert at modellen konvergerer - forklar i så fall hvorfor. 
+    Visualiser "decision boundary" på samme måte som over. Mål nøyaktigheten til modellen med ( X test , y test )."""
+
+    # desired_columns = np.array(['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g'])
+    # desired_columns = np.array(['bill_length_mm', 'flipper_length_mm'])
+    # label_column = 'species'
+    # X, y = read_data("palmer_penguins.csv", ",", desired_columns, label_column)
+    # y_binary = convert_y_to_binary(y, 1)
+    
+    # train, test = train_test_split(X, y_binary, 0.8)
+    # X_train = train[0]
+    # X_test = test[0]
+    # y_train = train[1]
+    # y_test = test[1]
+
+    # p = Perceptron(2, 0)
+    # p.train(X_train, y_train)
+    # ### PLOT
+    # slope, intercept = p.decision_boundary_slope_intercept()
+    # for label in np.unique(y):
+    #     plt.scatter(X_test[y_test_result == label, 0], X_test[y_test_result == label, 1], label=f'Class {label}')
+
+    # x_values = np.linspace(np.amin(X[:, 0]), np.amax(X[:, 0]), 100)
+    # y_values = slope * x_values + intercept
+
+    # plt.plot(x_values, y_values, 'k-', label='line')
+
+    # plt.grid(True)
+    # plt.show()
+
+
