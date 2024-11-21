@@ -349,8 +349,14 @@ def gini_impurity_reduction(y: NDArray, left_mask: NDArray) -> float:
     left = y[left_mask]
     right= y[~left_mask]
     n_samples = y.shape[0]
-    
-    unique_elements, counts = np.unique(y, return_counts=True)
+    gi_left = gini_impurity(left)
+    gi_right = gini_impurity(right)
+
+    new_gi = (gi_left*(len(left)/n_samples)) + (gi_right*(len(right)/n_samples))
+
+    impurity_reduction = gi_before_split - new_gi
+
+    return float(impurity_reduction)
 
 
 
@@ -383,7 +389,27 @@ def best_split_feature_value(X: NDArray, y: NDArray) -> tuple[float, int, float]
     The method checks every possible combination of feature and
     existing unique feature values in the dataset.
     """
-    pass
+    n_samples = X.shape[0]
+    n_features = X.shape[1]
+
+    question_feature_index = None
+    question_value = None
+    best_GI_reduction = (-np.inf)
+
+    #for every feature (every column) f with index j in X:
+    for j in range(n_features):
+        f_j = X[:,j]
+
+        unique_list, counts = np.unique(f_j, return_counts=True)
+        for value in unique_list:
+            left_mask = f_j <= value
+            GI_reduction = gini_impurity_reduction(y, left_mask)
+            if GI_reduction > best_GI_reduction:
+                best_GI_reduction = GI_reduction
+                question_feature_index = j
+                question_value = value
+
+    return best_GI_reduction, question_feature_index, question_value
 
 
 ###################
@@ -633,7 +659,9 @@ class DecisionTree:
                 "stitch" predictions for left and right datasets into single y vector
                 return y vector (length matching number of rows in X)
         """
-        pass
+        n_samples = X.shape[0]
+        n_features = X.shape[1]
+        
 
 
 ############
