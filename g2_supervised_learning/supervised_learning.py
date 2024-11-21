@@ -345,7 +345,14 @@ def gini_impurity_reduction(y: NDArray, left_mask: NDArray) -> float:
         for the two split datasets ("left" and "right").
 
     """
-    pass
+    gi_before_split = gini_impurity(y)
+    left = y[left_mask]
+    right= y[~left_mask]
+    n_samples = y.shape[0]
+    
+    unique_elements, counts = np.unique(y, return_counts=True)
+
+
 
 
 def best_split_feature_value(X: NDArray, y: NDArray) -> tuple[float, int, float]:
