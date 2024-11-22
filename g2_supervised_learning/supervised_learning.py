@@ -431,22 +431,6 @@ class Perceptron:
         Set to None if Perceptron has not yet been trained.
     """
 
-    """ 
-    **** SLETTT ****
-
-        _init_():
-            w1 = random
-            w2 = random
-
-        predict(X1,X2):
-            I=X1*W1 + X2*W2
-            V = 1 if I >= 1 else 0
-
-        train(X1, X2, Z)
-        V = Predict(X1, X2)
-        W1 = w1 + a*(Z(?)-1)*X1
-        W2 = w2 + a*(Z(?)-1)*X2
-    """
     
     def __init__(self, n_features: int, bias: float = 0):
         """Initialize perceptron"""
@@ -454,7 +438,6 @@ class Perceptron:
         self.bias = bias
         self.converged = None
 
-        # Ved init skal weights settes til et random tall mellom 0 og 1.
 
     def predict_single(self, X: NDArray) -> int:
         """Predict / calculate perceptron output for single observation / row x
@@ -465,8 +448,6 @@ class Perceptron:
 
         Returns:
             int: _description_
-            E: Error ****???????????????????????**** Skal denne implementeres? Ødelegger kanskje for auto-test...
-                E = Y - V
         """
         I = 0
         for i in range(len(X)):
@@ -662,16 +643,59 @@ class DecisionTree:
         n_samples = X.shape[0]
         n_features = X.shape[1]
         
+        if isinstance(node, DecisionTreeBranchNode): # NB: Fikk hjelp fra chatgpt for løsning for å forstå Union/isinstance.
+            print("BRANCH NODE")
+            # Is splitting X first based on the question, we wan to ask (feature_index)
+            # Then splitting to left/right based on the value
+            left_mask = X[:,node.feature_index]<=node.feature_value
+            right_mask = X[:,node.feature_index]>node.feature_value
+
+            left_branch = X[left_mask]
+            right_branch = X[right_mask]
+
+            print(left_branch)
+            print(right_branch)
+
+            # Recursive prediction for each of the new sets.
+            left_predict = self._predict(left_branch, node.left)
+            right_predict = self._predict(right_branch, node.right)
+
+            y = np.zeros(n_samples)
+            y[left_mask] = left_predict
+            y[right_mask] = right_predict
+
+            return y
+
+        elif isinstance(node, DecisionTreeLeafNode):
+            y = []
+            for i in range(X.shape[0]):
+                y.append(node.value)
+            return np.array(y)
+        else:
+            raise ValueError("Decision tree root is None (not set)")
+        
 
 
 ############
 #   MAIN
 ############
 
+def experiment_1():
+    pass
+
+def experiment_2():
+    pass
+
+def experiment_3():
+    pass
+
 if __name__ == "__main__":
     # Demonstrate your code / solutions here.
     # Be tidy; don't cut-and-paste lots of lines.
     # Experiments can be implemented as separate functions that are called here.
+
+
+
 
     # Oppgave 1 - Testing
     # 1. ----- SLETT -----
