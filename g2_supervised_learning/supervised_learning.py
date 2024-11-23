@@ -681,7 +681,35 @@ class DecisionTree:
 ############
 
 def experiment_1():
-    pass
+    desired_columns = np.array(['bill_depth_mm', 'flipper_length_mm'])
+    label_column = 'species'
+    X, y = read_data("palmer_penguins.csv", ",", desired_columns, label_column)
+    y_binary = convert_y_to_binary(y, 1)
+
+    train, test = train_test_split(X, y_binary, 0.8)
+    X_train = train[0]
+    X_test = test[0]
+
+    y_train = train[1]
+    y_test = test[1]
+
+    print(y_binary)
+    #print(y_binary)
+    #### PLOT
+    for label_value in np.unique(y):
+        plt.scatter(x=X[y_binary==label_value, 0],
+                    y=X[y_binary==label_value, 1])
+
+    plt.xlabel(desired_columns[0])
+    plt.ylabel(desired_columns[1])
+    plt.title('Binary')
+
+    x_min, x_max = np.min(X_train[:, 0]), np.max(X_train[:, 0])
+    x_points = np.linspace(x_min, x_max, 100)
+    y_points = -(p.weights[0] * x_points + p.bias) / p.weights[1]
+
+    plt.plot(x_points, y_points, 'k-', label='Decision boundary')
+    plt.show()
 
 def experiment_2():
     pass
@@ -689,12 +717,45 @@ def experiment_2():
 def experiment_3():
     pass
 
+def experiment_4():
+    pass
+
+def experiment_5():
+    pass
+
 if __name__ == "__main__":
     # Demonstrate your code / solutions here.
     # Be tidy; don't cut-and-paste lots of lines.
     # Experiments can be implemented as separate functions that are called here.
 
+    print(
+        """
+        Experiments that can be simulated:
 
+        1. Perceptron: Separate Gentoo from the other two species. Features to be used: bill_depth_mm and flipper_length_mm. Show plot and accuracy.
+
+        2. Perceptron: Separate the Chinstrap species from the other two. Features to be used: bill_length_mm and bill_depth_mm. Show plot and accuracy.
+
+        3. Create a decision tree to separate the Gentoo penguin species from the other two. Features to be used: bill_depth_mm and flipper_length_mm. Measure accuracy and visualize the decision tree.
+
+        4. Create a decision tree to separate the Chinstrap species from the others. Features to be used: bill_length_mm and bill_depth_mm. Measure accuracy and visualize the decision tree.
+
+        5. Repeat the experiments several times with random shuffling and splitting. Each time, create a decision tree based on all 4 features in the dataset to distinguish between all three species. Measure accuracy.
+        """ 
+    )
+
+    choise = input("Which Experiment to simulate?")
+
+    if choise == 1:
+        experiment_1()
+    elif choise == 2:
+        experiment_2()
+    elif choise == 3:
+        experiment_3()
+    elif choise == 4:
+        experiment_4()
+    elif choise == 5:
+        experiment_5()
 
 
     # Oppgave 1 - Testing
