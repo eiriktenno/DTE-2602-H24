@@ -213,6 +213,31 @@ def convert_y_to_binary(y: NDArray, y_value_true: int) -> NDArray:
     return np.array(y_binary)
 
 
+######################## SLETTTTTTT
+# def convert_y_to_int(y: NDArray, y_value_true: int) -> NDArray:
+#     """Convert integer values
+
+#     Parameters
+#     ----------
+#     y: NDArray
+#         Integer valued NumPy vector, shape (n_samples,)
+
+#     Returns
+#     -------
+#     y_int: NDArray
+#         Integer vector, shape (n_samples,)
+#         Converts each unique text to a unique number.
+#     """
+#     y_int = []
+#     for i in range(len(y)):
+#         if y[i] == y_value_true:
+#             y_binary.append(1)
+#         else:
+#             y_binary.append(0)
+#     return np.array(y_binary)
+# ALLEREDE LAGET TIL.
+
+
 def shuffel_data_set(X: NDArray, y: NDArray) -> tuple[NDArray, NDArray]:
     """Shuffel function. Is randomizing the order for X and y.
 
@@ -316,7 +341,6 @@ def gini_impurity(y: NDArray) -> float:
 
     n_samples = y.shape[0]
     unique_list, counts = np.unique(y, return_counts=True)
-    print(f"Unique_list: {unique_list} counts: {counts}")
     
     sumarize = 0
     for i in range(len(unique_list)):
@@ -397,6 +421,8 @@ def best_split_feature_value(X: NDArray, y: NDArray) -> tuple[float, int, float]
     best_GI_reduction = (-np.inf)
 
     #for every feature (every column) f with index j in X:
+    # for j in range(n_features):
+    #     print(f"J: {j}")
     for j in range(n_features):
         f_j = X[:,j]
 
@@ -437,6 +463,7 @@ class Perceptron:
         self.weights = np.random.rand(n_features)
         self.bias = bias
         self.converged = None
+        self.converged_index = 0
 
 
     def predict_single(self, X: NDArray) -> int:
@@ -469,7 +496,7 @@ class Perceptron:
                 X_predict.append(1)
         return np.array(X_predict)
 
-    def train(self, X: NDArray, y: NDArray, learning_rate: float = 0.1, max_epochs: int = 10000):
+    def train(self, X: NDArray, y: NDArray, learning_rate: float = 0.01, max_epochs: int = 1000):
         """Train perceptron on dataset X with binary labels y
 
         Args:
@@ -493,6 +520,7 @@ class Perceptron:
 
             if errors == 0:
                 self.converged = True
+                self.converged_index = epoch
                 break
             #print(f"Epoch {epoch}, Weights: {self.weights}, Bias: {self.bias}")
 
@@ -644,7 +672,6 @@ class DecisionTree:
         n_features = X.shape[1]
         
         if isinstance(node, DecisionTreeBranchNode): # NB: Fikk hjelp fra chatgpt for løsning for å forstå Union/isinstance.
-            print("BRANCH NODE")
             # Is splitting X first based on the question, we wan to ask (feature_index)
             # Then splitting to left/right based on the value
             left_mask = X[:,node.feature_index]<=node.feature_value
@@ -652,9 +679,6 @@ class DecisionTree:
 
             left_branch = X[left_mask]
             right_branch = X[right_mask]
-
-            print(left_branch)
-            print(right_branch)
 
             # Recursive prediction for each of the new sets.
             left_predict = self._predict(left_branch, node.left)
@@ -680,8 +704,64 @@ class DecisionTree:
 #   MAIN
 ############
 
+def plot_experiments(
+        title: str, 
+        p: Perceptron, 
+        X_test: NDArray, 
+        y_test: NDArray, 
+        desired_columns: NDArray
+        ):
+    """_summary_
+
+    Args:
+        p (Perceptron): _description_
+        X_test (NDArray): _description_
+        desired_columns (NDArray): _description_
+    """
+    plt.xlabel(desired_columns[0])
+    plt.ylabel(desired_columns[1])
+    plt.title(title)
+
+    for label_value in np.unique(y_test):
+        plt.scatter(x=X_test[y_test==label_value, 0],
+                    y=X_test[y_test==label_value, 1])
+
+    x_min, x_max = np.min(X_test[:, 0]), np.max(X_test[:, 0])
+    x_points = np.linspace(x_min, x_max, 100)
+    y_points = -(p.weights[0] * x_points + p.bias) / p.weights[1]
+
+    plt.plot(x_points, y_points, 'k-', label='Decision boundary')
+    plt.show()
+
 def experiment_1():
+    print("EXPERIMENT 1")
+    p = Perceptron(2, 1)
     desired_columns = np.array(['bill_depth_mm', 'flipper_length_mm'])
+    label_column = 'species'
+    X, y = read_data("palmer_penguins.csv", ",", desired_columns, label_column)
+    y_binary = convert_y_to_binary(y, 2)
+
+    train, test = train_test_split(X, y_binary, 0.8)
+    X_train = train[0]
+    X_test = test[0]
+
+    y_train = train[1]
+    y_test = test[1]
+
+    p.train(X_train, y_train)
+
+    plot_experiments('Experiment 1 - TRAIN',p, X_train, y_train, desired_columns)
+    plot_experiments('Experiment 1 - TEST',p, X_test, y_test, desired_columns)
+
+    predicted_list = p.predict(X_test)
+
+    print(f"ACCURACY: {accuracy(predicted_list, y_test)}, CONVERGED: {p.converged} Index: {p.converged_index}")
+
+
+def experiment_2():
+    print("EXPERIMENT 2")
+    p = Perceptron(2, 1)
+    desired_columns = np.array(['bill_length_mm', 'flipper_length_mm'])
     label_column = 'species'
     X, y = read_data("palmer_penguins.csv", ",", desired_columns, label_column)
     y_binary = convert_y_to_binary(y, 1)
@@ -693,35 +773,87 @@ def experiment_1():
     y_train = train[1]
     y_test = test[1]
 
-    print(y_binary)
-    #print(y_binary)
-    #### PLOT
-    for label_value in np.unique(y):
-        plt.scatter(x=X[y_binary==label_value, 0],
-                    y=X[y_binary==label_value, 1])
+    p.train(X_train, y_train)
 
-    plt.xlabel(desired_columns[0])
-    plt.ylabel(desired_columns[1])
-    plt.title('Binary')
+    plot_experiments('Experiment 2 - TRAIN',p, X_train, y_train, desired_columns)
+    plot_experiments('Experiment 2 - TEST',p, X_test, y_test, desired_columns)
 
-    x_min, x_max = np.min(X_train[:, 0]), np.max(X_train[:, 0])
-    x_points = np.linspace(x_min, x_max, 100)
-    y_points = -(p.weights[0] * x_points + p.bias) / p.weights[1]
+    predicted_list = p.predict(X_test)
 
-    plt.plot(x_points, y_points, 'k-', label='Decision boundary')
-    plt.show()
+    print(f"ACCURACY: {accuracy(predicted_list, y_test)}, CONVERGED: {p.converged} Index: {p.converged_index}")
 
-def experiment_2():
-    pass
 
 def experiment_3():
-    pass
+    print("EXPERIMENT 3")
+    #desired_columns = np.array(['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g'])
+    desired_columns = np.array(['bill_depth_mm', 'flipper_length_mm'])
+    label_column = 'species'
+    X, y = read_data("palmer_penguins.csv", ",", desired_columns, label_column)
+    y_binary = convert_y_to_binary(y, 2)
+
+    train, test = train_test_split(X, y_binary, 0.8)
+    X_train = train[0]
+    X_test = test[0]
+    y_train = train[1]
+    y_test = test[1]
+
+    dt_classifier = DecisionTree()
+    dt_classifier.fit(X_train, y_train)
+
+    predicted_list = dt_classifier.predict(X_test)
+
+    print(dt_classifier)
+    print(f"ACCURACY: {accuracy(predicted_list, y_test)}")
+
 
 def experiment_4():
-    pass
+    print("EXPERIMENT 4")
+    #desired_columns = np.array(['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g'])
+    desired_columns = np.array(['bill_length_mm', 'bill_depth_mm'])
+    label_column = 'species'
+    X, y = read_data("palmer_penguins.csv", ",", desired_columns, label_column)
+    y_binary = convert_y_to_binary(y, 1)
+
+    train, test = train_test_split(X, y_binary, 0.8)
+    X_train = train[0]
+    X_test = test[0]
+    y_train = train[1]
+    y_test = test[1]
+
+    dt_classifier = DecisionTree()
+    dt_classifier.fit(X_train, y_train)
+
+    predicted_list = dt_classifier.predict(X_test)
+
+    print(dt_classifier)
+    print(f"ACCURACY: {accuracy(predicted_list, y_test)}")
 
 def experiment_5():
-    pass
+    print("EXPERIMENT 5")
+    n_tests = int(input("How many tests?\n"))
+
+    accuracy_list = []
+
+    for i in range(n_tests):
+        desired_columns = np.array(['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g'])
+        label_column = 'species'
+        X, y = read_data("palmer_penguins.csv", ",", desired_columns, label_column)
+
+        train, test = train_test_split(X, y, 0.8)
+        X_train = train[0]
+        X_test = test[0]
+        y_train = train[1]
+        y_test = test[1]
+
+        dt_classifier = DecisionTree()
+        dt_classifier.fit(X_train, y_train)
+
+        predicted_list = dt_classifier.predict(X_test)
+
+        accuracy_list.append(accuracy(predicted_list, y_test))
+
+    average = sum(accuracy_list) / len(accuracy_list)
+    print(f"The average is: {average}")
 
 if __name__ == "__main__":
     # Demonstrate your code / solutions here.
@@ -732,19 +864,27 @@ if __name__ == "__main__":
         """
         Experiments that can be simulated:
 
-        1. Perceptron: Separate Gentoo from the other two species. Features to be used: bill_depth_mm and flipper_length_mm. Show plot and accuracy.
+        1. Perceptron: Separate Gentoo from the other two species. 
+           Features to be used: bill_depth_mm and flipper_length_mm. Show plot and accuracy.
 
-        2. Perceptron: Separate the Chinstrap species from the other two. Features to be used: bill_length_mm and bill_depth_mm. Show plot and accuracy.
+        2. Perceptron: Separate the Chinstrap species from the other two. 
+           Features to be used: bill_length_mm and bill_depth_mm. Show plot and accuracy.
 
-        3. Create a decision tree to separate the Gentoo penguin species from the other two. Features to be used: bill_depth_mm and flipper_length_mm. Measure accuracy and visualize the decision tree.
+        3. Create a decision tree to separate the Gentoo penguin species from the other two. 
+           Features to be used: bill_depth_mm and flipper_length_mm. Measure accuracy and visualize the decision tree.
 
-        4. Create a decision tree to separate the Chinstrap species from the others. Features to be used: bill_length_mm and bill_depth_mm. Measure accuracy and visualize the decision tree.
+        4. Create a decision tree to separate the Chinstrap species from the others. 
+           Features to be used: bill_length_mm and bill_depth_mm. Measure accuracy and visualize the decision tree.
 
-        5. Repeat the experiments several times with random shuffling and splitting. Each time, create a decision tree based on all 4 features in the dataset to distinguish between all three species. Measure accuracy.
+        5. Repeat the experiments several times with random shuffling and splitting. 
+           Each time, create a decision tree based on all 4 features in the dataset to distinguish between all three species. 
+           Measure accuracy.
         """ 
     )
 
-    choise = input("Which Experiment to simulate?")
+    choise = int(input("Which Experiment to simulate?\n"))
+
+    print(choise)
 
     if choise == 1:
         experiment_1()
@@ -756,193 +896,3 @@ if __name__ == "__main__":
         experiment_4()
     elif choise == 5:
         experiment_5()
-
-
-    # Oppgave 1 - Testing
-    # 1. ----- SLETT -----
-    #desired_columns = np.array(['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g'])
-    #desired_columns = np.array(['bill_depth_mm', 'flipper_length_mm'])
-    desired_columns = np.array(['bill_length_mm', 'flipper_length_mm'])
-    label_column = 'species'
-    X, y = read_data("palmer_penguins.csv", ",", desired_columns, label_column)
-    # 1. -----------------
-
-    # Oppgave 2 - Testing
-    # 2. ---- SLETT -------
-    # y_binary = convert_y_to_binary(y, 2)
-    y_binary = convert_y_to_binary(y, 1)
-    print(y_binary)
-    #print(y_binary)
-    #### PLOT
-    for label_value in np.unique(y):
-        plt.scatter(x=X[y_binary==label_value, 0],
-                    y=X[y_binary==label_value, 1])
-
-    plt.xlabel('Feature 0')
-    plt.ylabel('Feature 1')
-    plt.title('Binary')
-    plt.show()
-    # 2. ------------------
-
-
-    # Oppgave 3 - Testing
-    # 3. ---- SLETT -------
-    train, test = train_test_split(X, y_binary, 0.8)
-    X_train = train[0]
-    X_test = test[0]
-
-    y_train = train[1]
-    y_test = test[1]
-
-    #### PLOT TRAINING SET
-    for label_value in np.unique(y_train):
-        plt.scatter(x=X_train[y_train==label_value, 0],
-                    y=X_train[y_train==label_value, 1])
-
-    plt.xlabel('Feature 0')
-    plt.ylabel('Feature 1')
-    plt.title('Train')
-    plt.show()
-
-    #### PLOT TEST SET
-    for label_value in np.unique(y_test):
-        plt.scatter(x=X_test[y_test==label_value, 0],
-                    y=X_test[y_test==label_value, 1])
-
-    plt.xlabel('Feature 0')
-    plt.ylabel('Feature 1')
-    plt.title('Test')
-    plt.show()
-    # 3. ------------------
-
-
-    # Oppgave Perceptron
-    # 4. ---- SLETT -------
-    p = Perceptron(2, 0)
-    #print(p.predict_single(test[0][0]))
-    print("BEFORE:")
-    print(p.weights)
-    print(p.bias)
-    #print(f"Data sent in: X-train: {X_train=} y-train: {y_train=}")
-    p.train(X_train, y_train)
-    print("AFTER:")
-    print(p.weights)
-    print(p.bias)
-
-    # ################################################################
-    ### Basert på: https://stackoverflow.com/questions/31292393/how-do-you-draw-a-line-using-the-weight-vector-in-a-linear-perceptron?rq=1
-    ### Samt støtte fra ChatGPT
-    # ################################################################
-    # Plot data
-    for label in np.unique(y):
-        plt.scatter(X_train[y_train == label, 0], X_train[y_train == label, 1], label=f'Class {label}')
-    
-
-    x_min, x_max = np.min(X_train[:, 0]), np.max(X_train[:, 0])
-    x_points = np.linspace(x_min, x_max, 100)
-    y_points = -(p.weights[0] * x_points + p.bias) / p.weights[1]
-
-    plt.plot(x_points, y_points, 'k-', label='Decision boundary')
-    plt.xlabel('Feature 0')
-    plt.ylabel('Feature 1')
-    plt.title('Data and Decision Boundary')
-    plt.grid(True)
-    plt.show()
-    # ################################################################
-
-
-    y_test_result = p.predict(X_test)
-    # ################################################################
-    ### Basert på: https://stackoverflow.com/questions/31292393/how-do-you-draw-a-line-using-the-weight-vector-in-a-linear-perceptron?rq=1
-    ### Samt støtte fra ChatGPT
-    # ################################################################
-    # Plot data
-    for label in np.unique(y):
-        plt.scatter(X_test[y_test_result == label, 0], X_test[y_test_result == label, 1], label=f'Class {label}')
-    
-
-    x_min, x_max = np.min(X_test[:, 0]), np.max(X_test[:, 0])
-    x_points = np.linspace(x_min, x_max, 100)
-    y_points = -(p.weights[0] * x_points + p.bias) / p.weights[1]
-
-    plt.plot(x_points, y_points, 'k-', label='Decision boundary')
-    plt.xlabel('Feature 0')
-    plt.ylabel('Feature 1')
-    plt.title('Data and Decision Boundary')
-    plt.grid(True)
-    plt.show()
-    # ################################################################
-
-
-    # 4. ------------------
-
-    #PLOT TESTING - MED FUNKSJONSTEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    slope, intercept = p.decision_boundary_slope_intercept()
-    for label in np.unique(y):
-        plt.scatter(X_test[y_test_result == label, 0], X_test[y_test_result == label, 1], label=f'Class {label}')
-
-    x_values = np.linspace(np.amin(X[:, 0]), np.amax(X[:, 0]), 100)
-    y_values = slope * x_values + intercept
-
-    plt.plot(x_values, y_values, 'k-', label='line')
-
-    plt.grid(True)
-    plt.show()
-
-
-    # PREDICT TEST !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    print(X_test)
-    print(y_test)
-    predicted_list = p.predict(X_test)
-    print(f"{np.column_stack((y_test, predicted_list))=}")
-
-    print(f"ACCURACY: {accuracy(predicted_list, y_test)}")
-
-    #### PLOT
-    # for label_value in np.unique(y):
-    #     plt.scatter(x=X[y_binary==label_value, 0],
-    #                 y=X[y_binary==label_value, 1])
-
-    # plt.xlabel('Feature 0')
-    # plt.ylabel('Feature 1')
-    # plt.title('Binary')
-    # plt.show()
-
-
-
-    # PERCEPTRON OPPGAVE 2
-    """Lag et nytt perceptron som skal skille arten Chinstrap fra de to andre. 
-    Bruk kun kolonnene bill_length_mm og bill_depth_mm fra X-matrisa (ikke samme som over!). 
-    Tren perceptron'et med ( X train , y train ). 
-    Merk at det ikke er sikkert at modellen konvergerer - forklar i så fall hvorfor. 
-    Visualiser "decision boundary" på samme måte som over. Mål nøyaktigheten til modellen med ( X test , y test )."""
-
-    # desired_columns = np.array(['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g'])
-    # desired_columns = np.array(['bill_length_mm', 'flipper_length_mm'])
-    # label_column = 'species'
-    # X, y = read_data("palmer_penguins.csv", ",", desired_columns, label_column)
-    # y_binary = convert_y_to_binary(y, 1)
-    
-    # train, test = train_test_split(X, y_binary, 0.8)
-    # X_train = train[0]
-    # X_test = test[0]
-    # y_train = train[1]
-    # y_test = test[1]
-
-    # p = Perceptron(2, 0)
-    # p.train(X_train, y_train)
-    # ### PLOT
-    # slope, intercept = p.decision_boundary_slope_intercept()
-    # for label in np.unique(y):
-    #     plt.scatter(X_test[y_test_result == label, 0], X_test[y_test_result == label, 1], label=f'Class {label}')
-
-    # x_values = np.linspace(np.amin(X[:, 0]), np.amax(X[:, 0]), 100)
-    # y_values = slope * x_values + intercept
-
-    # plt.plot(x_values, y_values, 'k-', label='line')
-
-    # plt.grid(True)
-    # plt.show()
-
-
-    print(gini_impurity(y_train))
