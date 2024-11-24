@@ -213,31 +213,6 @@ def convert_y_to_binary(y: NDArray, y_value_true: int) -> NDArray:
     return np.array(y_binary)
 
 
-######################## SLETTTTTTT
-# def convert_y_to_int(y: NDArray, y_value_true: int) -> NDArray:
-#     """Convert integer values
-
-#     Parameters
-#     ----------
-#     y: NDArray
-#         Integer valued NumPy vector, shape (n_samples,)
-
-#     Returns
-#     -------
-#     y_int: NDArray
-#         Integer vector, shape (n_samples,)
-#         Converts each unique text to a unique number.
-#     """
-#     y_int = []
-#     for i in range(len(y)):
-#         if y[i] == y_value_true:
-#             y_binary.append(1)
-#         else:
-#             y_binary.append(0)
-#     return np.array(y_binary)
-# ALLEREDE LAGET TIL.
-
-
 def shuffel_data_set(X: NDArray, y: NDArray) -> tuple[NDArray, NDArray]:
     """Shuffel function. Is randomizing the order for X and y.
 
@@ -468,13 +443,13 @@ class Perceptron:
 
     def predict_single(self, X: NDArray) -> int:
         """Predict / calculate perceptron output for single observation / row x
-        <Write rest of docstring here>
+        
         Args:
             x (NDArray): Et datapunkt for hver feature som skal testes.
             F (int): Aktiveringsfunksjonene. Som standard "Threshold".
 
         Returns:
-            int: _description_
+            int: The predicted class 0 or 1
         """
         I = 0
         for i in range(len(X)):
@@ -486,7 +461,12 @@ class Perceptron:
 
     def predict(self, X: NDArray) -> NDArray:
         """Predict / calculate perceptron output for data matrix X
-        <Write rest of docstring here>
+        
+        Args:
+            x (NDArray): An NDArray with data to predict class for(n_samples, n_features).
+
+        Returns:
+            x (NDArray): An NDArray containing the predicted data (n_samples).
         """
         X_predict = []
         for i in range(X.shape[0]):
@@ -503,7 +483,7 @@ class Perceptron:
             X (NDArray): Training data with shape (n_samples, n_features)
             y (NDArray): Labels with shape (n_samples,)
             learning_rate (float): The learning rate (default=0.01)
-            max_epochs (int): Maximum number of epochs (default=10000)
+            max_epochs (int): Maximum number of epochs (default=1000)
         """
         self.converged = False
         
@@ -522,15 +502,16 @@ class Perceptron:
                 self.converged = True
                 self.converged_index = epoch
                 break
-            #print(f"Epoch {epoch}, Weights: {self.weights}, Bias: {self.bias}")
 
 
     def decision_boundary_slope_intercept(self) -> tuple[float, float]:
         """Calculate slope and intercept for decision boundary line (2-feature data only)
-        <Write rest of docstring here>
+        
+        Returns:
+            (slope, intercept): tuple[float, float]]
+                - Slope: the slope for the line drawn to separate the classes.
+                - Intercept: The intercept point, where the drawn line crosses y.
         """
-        # slope = -(weights[0]/weights[2])/(weights[0]/weights[1])  
-        # intercept = -weights[0]/weights[2]
 
         slope = -(self.bias/self.weights[1])/(self.bias/self.weights[0])  
         intercept = -self.bias/self.weights[1]
@@ -704,19 +685,21 @@ class DecisionTree:
 #   MAIN
 ############
 
-def plot_experiments(
+def plot_perceptron_experiments(
         title: str, 
         p: Perceptron, 
         X_test: NDArray, 
         y_test: NDArray, 
         desired_columns: NDArray
         ):
-    """_summary_
+    """Function to plot all the data points, and draw the classification line (boundry line).
 
     Args:
-        p (Perceptron): _description_
-        X_test (NDArray): _description_
-        desired_columns (NDArray): _description_
+        title (str): The title shown in the plot window
+        p (Perceptron): The perceptron class used in training.
+        X_test (NDArray): (n_samples, n_features) Test data, check the accuracy for the model.
+        y_test (NDArray): (n_samples) Test data, to verify the result from the prediction.
+        desired_columns (NDArray): The features used in traing/data. Labeled in the plot.
     """
     plt.xlabel(desired_columns[0])
     plt.ylabel(desired_columns[1])
@@ -734,6 +717,9 @@ def plot_experiments(
     plt.show()
 
 def experiment_1():
+    """Perceptron: Separate Gentoo from the other two species. 
+       Features to be used: bill_depth_mm and flipper_length_mm. Show plot and accuracy.
+    """
     print("EXPERIMENT 1")
     p = Perceptron(2, 1)
     desired_columns = np.array(['bill_depth_mm', 'flipper_length_mm'])
@@ -750,8 +736,8 @@ def experiment_1():
 
     p.train(X_train, y_train)
 
-    plot_experiments('Experiment 1 - TRAIN',p, X_train, y_train, desired_columns)
-    plot_experiments('Experiment 1 - TEST',p, X_test, y_test, desired_columns)
+    plot_perceptron_experiments('Experiment 1 - TRAIN',p, X_train, y_train, desired_columns)
+    plot_perceptron_experiments('Experiment 1 - TEST',p, X_test, y_test, desired_columns)
 
     predicted_list = p.predict(X_test)
 
@@ -759,6 +745,9 @@ def experiment_1():
 
 
 def experiment_2():
+    """Perceptron: Separate the Chinstrap species from the other two. 
+       Features to be used: bill_length_mm and bill_depth_mm. Show plot and accuracy.
+    """
     print("EXPERIMENT 2")
     p = Perceptron(2, 1)
     desired_columns = np.array(['bill_length_mm', 'flipper_length_mm'])
@@ -775,8 +764,8 @@ def experiment_2():
 
     p.train(X_train, y_train)
 
-    plot_experiments('Experiment 2 - TRAIN',p, X_train, y_train, desired_columns)
-    plot_experiments('Experiment 2 - TEST',p, X_test, y_test, desired_columns)
+    plot_perceptron_experiments('Experiment 2 - TRAIN',p, X_train, y_train, desired_columns)
+    plot_perceptron_experiments('Experiment 2 - TEST',p, X_test, y_test, desired_columns)
 
     predicted_list = p.predict(X_test)
 
@@ -784,8 +773,10 @@ def experiment_2():
 
 
 def experiment_3():
+    """Create a decision tree to separate the Gentoo penguin species from the other two. 
+       Features to be used: bill_depth_mm and flipper_length_mm. Measure accuracy and visualize the decision tree.
+    """
     print("EXPERIMENT 3")
-    #desired_columns = np.array(['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g'])
     desired_columns = np.array(['bill_depth_mm', 'flipper_length_mm'])
     label_column = 'species'
     X, y = read_data("palmer_penguins.csv", ",", desired_columns, label_column)
@@ -807,8 +798,10 @@ def experiment_3():
 
 
 def experiment_4():
+    """Create a decision tree to separate the Chinstrap species from the others. 
+       Features to be used: bill_length_mm and bill_depth_mm. Measure accuracy and visualize the decision tree.
+    """
     print("EXPERIMENT 4")
-    #desired_columns = np.array(['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g'])
     desired_columns = np.array(['bill_length_mm', 'bill_depth_mm'])
     label_column = 'species'
     X, y = read_data("palmer_penguins.csv", ",", desired_columns, label_column)
@@ -829,6 +822,10 @@ def experiment_4():
     print(f"ACCURACY: {accuracy(predicted_list, y_test)}")
 
 def experiment_5():
+    """Repeat the experiments several times with random shuffling and splitting. 
+       Each time, create a decision tree based on all 4 features in the dataset to distinguish between all three species. 
+       Measure accuracy.
+    """
     print("EXPERIMENT 5")
     n_tests = int(input("How many tests?\n"))
 
